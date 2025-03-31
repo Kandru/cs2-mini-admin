@@ -28,7 +28,7 @@ namespace MiniAdmin
             // kick player
             if (Config.BannedPlayers.ContainsKey(player.NetworkIDString))
             {
-                Server.ExecuteCommand($"kick {player.Index}");
+                player.Disconnect(0);
                 Server.PrintToChatAll(Localizer["command.banned"].Value
                     .Replace("{player}", player.PlayerName));
             }
@@ -47,7 +47,7 @@ namespace MiniAdmin
             if (player == null
                 || !player.IsValid) return false;
             // kick player
-            Server.ExecuteCommand($"kick {player.Index}");
+            player.Disconnect(0);
             Server.PrintToChatAll(Localizer["command.kick"].Value
                 .Replace("{player}", player.PlayerName));
             return true;
@@ -58,7 +58,7 @@ namespace MiniAdmin
             if (player == null
                 || !player.IsValid) return false;
             // kick player
-            Server.ExecuteCommand($"kick {player.Index}");
+            player.Disconnect(0);
             // add to ban list if not already added
             if (!Config.BannedPlayers.ContainsKey(player.NetworkIDString.ToString()))
             {
@@ -77,7 +77,7 @@ namespace MiniAdmin
         private bool UnbanPlayer(string SteamID)
         {
             if (string.IsNullOrEmpty(SteamID)
-                || Config.BannedPlayers.ContainsKey(SteamID)) return false;
+                || !Config.BannedPlayers.ContainsKey(SteamID)) return false;
             string playerName = Config.BannedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID;
             // remove from ban list)
             Config.BannedPlayers.Remove(SteamID);
@@ -112,7 +112,7 @@ namespace MiniAdmin
         private bool UnmutePlayer(string SteamID)
         {
             if (string.IsNullOrEmpty(SteamID)
-                || Config.MutedPlayers.ContainsKey(SteamID)) return false;
+                || !Config.MutedPlayers.ContainsKey(SteamID)) return false;
             string playerName = Config.MutedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID;
             // remove from mute list)
             Config.MutedPlayers.Remove(SteamID);

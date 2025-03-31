@@ -11,14 +11,14 @@ namespace MiniAdmin
     {
         [ConsoleCommand("kick", "kick a player")]
         [RequiresPermissions("@miniadmin/kick")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "<player>")]
         public void CommandKick(CCSPlayerController player, CommandInfo command)
         {
             // close menu
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null)
+            if (playerName == null || playerName == "")
             {
                 // create menu to choose map
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
@@ -64,14 +64,14 @@ namespace MiniAdmin
 
         [ConsoleCommand("ban", "ban a player")]
         [RequiresPermissions("@miniadmin/ban")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "<player>")]
         public void CommandBan(CCSPlayerController player, CommandInfo command)
         {
             // close menu
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null)
+            if (playerName == null || playerName == "")
             {
                 // create menu to choose map
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
@@ -117,14 +117,14 @@ namespace MiniAdmin
 
         [ConsoleCommand("unban", "unban a player")]
         [RequiresPermissions("@miniadmin/ban")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "<player>")]
         public void CommandUnban(CCSPlayerController player, CommandInfo command)
         {
             // close menu
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null)
+            if (playerName == null || playerName == "")
             {
                 // create menu to choose map
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
@@ -172,7 +172,7 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null)
+            if (playerName == null || playerName == "")
             {
                 // create menu to choose map
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
@@ -225,7 +225,7 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null)
+            if (playerName == null || playerName == "")
             {
                 // create menu to choose map
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
