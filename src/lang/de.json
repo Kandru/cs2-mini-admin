@@ -1,0 +1,10 @@
+{
+    "core.debugprint": "[MiniAdmin][DEBUG]: {message}",
+    "core.config": "[MiniAdmin] Konfiguration geladen",
+    "command.menu.title": "[MiniAdmin] Menü",
+    "command.playernotfound": "[MiniAdmin] {default}Spieler {green}{player} {default}nicht gefunden",
+    "command.kick": "[MiniAdmin] {green}{player} {default}vom Server verwiesen",
+    "command.ban": "[MiniAdmin] {green}{player} {default}wurde gebannt",
+    "command.banned": "[MiniAdmin] {green}{player} {default}ist gebannt",
+    "command.unban": "[MiniAdmin] {green}{player} {default}wurde entbannt"
+}
