@@ -8,5 +8,6 @@
     "command.banned": "[MiniAdmin] {green}{player} {default}ist gebannt",
     "command.unban": "[MiniAdmin] {green}{player} {default}wurde entbannt",
     "command.mute": "[MiniAdmin] {green}{player} {default}wurde stummgeschaltet",
+    "command.muted": "[MiniAdmin] {green}{player} {default}ist serverweit stummgeschaltet",
     "command.unmute": "[MiniAdmin] {green}{player} {default}ist nicht mehr stummgeschaltet"
 }

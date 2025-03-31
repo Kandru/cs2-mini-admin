@@ -24,12 +24,21 @@ namespace MiniAdmin
         {
             CCSPlayerController? player = @event.Userid;
             if (player == null
-                || !player.IsValid
-                || !Config.BannedPlayers.ContainsKey(player.NetworkIDString)) return HookResult.Continue;
+                || !player.IsValid) return HookResult.Continue;
             // kick player
-            Server.ExecuteCommand($"kick {player.Index}");
-            Server.PrintToChatAll(Localizer["command.banned"].Value
-                .Replace("{player}", player.PlayerName));
+            if (Config.BannedPlayers.ContainsKey(player.NetworkIDString))
+            {
+                Server.ExecuteCommand($"kick {player.Index}");
+                Server.PrintToChatAll(Localizer["command.banned"].Value
+                    .Replace("{player}", player.PlayerName));
+            }
+            // mute player
+            if (Config.MutedPlayers.ContainsKey(player.NetworkIDString))
+            {
+                player.SetListenOverride(player, ListenOverride.Mute);
+                Server.PrintToChatAll(Localizer["command.muted"].Value
+                    .Replace("{player}", player.PlayerName));
+            }
             return HookResult.Continue;
         }
 
@@ -84,7 +93,6 @@ namespace MiniAdmin
             if (player == null
                 || !player.IsValid) return false;
             // mute player
-            var existingOverride = player.GetListenOverride(player);
             player.SetListenOverride(player, ListenOverride.Mute);
             // add to ban list if not already added
             if (!Config.MutedPlayers.ContainsKey(player.NetworkIDString.ToString()))
@@ -116,10 +124,9 @@ namespace MiniAdmin
             {
                 var player = players.First();
                 // unmute player
-                var existingOverride = player.GetListenOverride(player);
                 player.SetListenOverride(player, ListenOverride.Default);
             }
-            Server.PrintToChatAll(Localizer["command.unban"].Value
+            Server.PrintToChatAll(Localizer["command.unmute"].Value
             .Replace("{player}", playerName));
             return true;
         }
