@@ -39,6 +39,14 @@ Bans a player by his name. Will provide a list of all online players if no playe
 
 Unbans a player by his Steam ID or last known name. Will provide a list of all banned players if no player name was entered. Will provide a list of all matching player names to choose from.
 
+### !mute <player> (@miniadmin/ban)
+
+Mutes a player by his name. Will provide a list of all online players if no player name was entered. Will provide a list of all matching player names to choose from. Will mute instantly.
+
+### !unmute <player> (@miniadmin/ban)
+
+Unmutes a player by his Steam ID or last known name. Will provide a list of all muted players if no player name was entered. Will provide a list of all matching player names to choose from.
+
 ## Compile Yourself
 
 Clone the project:

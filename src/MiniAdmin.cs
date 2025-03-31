@@ -78,5 +78,50 @@ namespace MiniAdmin
             .Replace("{player}", playerName));
             return true;
         }
+
+        private bool MutePlayer(CCSPlayerController player)
+        {
+            if (player == null
+                || !player.IsValid) return false;
+            // mute player
+            var existingOverride = player.GetListenOverride(player);
+            player.SetListenOverride(player, ListenOverride.Mute);
+            // add to ban list if not already added
+            if (!Config.MutedPlayers.ContainsKey(player.NetworkIDString.ToString()))
+            {
+                Config.MutedPlayers.Add(player.NetworkIDString.ToString(), new Dictionary<string, string>
+                {
+                    { "name", player.PlayerName }
+                });
+                // write to config
+                Config.Update();
+            }
+            Server.PrintToChatAll(Localizer["command.mute"].Value
+                .Replace("{player}", player.PlayerName));
+            return true;
+        }
+
+        private bool UnmutePlayer(string SteamID)
+        {
+            if (string.IsNullOrEmpty(SteamID)
+                || Config.MutedPlayers.ContainsKey(SteamID)) return false;
+            string playerName = Config.MutedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID;
+            // remove from mute list)
+            Config.MutedPlayers.Remove(SteamID);
+            // write to config
+            Config.Update();
+            // check if player is online
+            var players = Utilities.GetPlayers().Where(p => p.IsValid && p.NetworkIDString.ToLower() == SteamID.ToLower());
+            if (players.Count() == 1)
+            {
+                var player = players.First();
+                // unmute player
+                var existingOverride = player.GetListenOverride(player);
+                player.SetListenOverride(player, ListenOverride.Default);
+            }
+            Server.PrintToChatAll(Localizer["command.unban"].Value
+            .Replace("{player}", playerName));
+            return true;
+        }
     }
 }

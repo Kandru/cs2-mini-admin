@@ -6,5 +6,7 @@
     "command.kick": "[MiniAdmin] {green}{player} {default}vom Server verwiesen",
     "command.ban": "[MiniAdmin] {green}{player} {default}wurde gebannt",
     "command.banned": "[MiniAdmin] {green}{player} {default}ist gebannt",
-    "command.unban": "[MiniAdmin] {green}{player} {default}wurde entbannt"
+    "command.unban": "[MiniAdmin] {green}{player} {default}wurde entbannt",
+    "command.mute": "[MiniAdmin] {green}{player} {default}wurde stummgeschaltet",
+    "command.unmute": "[MiniAdmin] {green}{player} {default}ist nicht mehr stummgeschaltet"
 }
