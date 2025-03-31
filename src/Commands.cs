@@ -27,7 +27,7 @@ namespace MiniAdmin
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV))
-                    menu.AddMenuOption(entry.PlayerName, (_, _) => { KickPlayer(entry); });
+                    menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { KickPlayer(entry); });
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -55,7 +55,7 @@ namespace MiniAdmin
                     var menu = new ChatMenu(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
-                        menu.AddMenuOption(entry.PlayerName, (_, _) => { KickPlayer(entry); });
+                        menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { KickPlayer(entry); });
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -80,7 +80,7 @@ namespace MiniAdmin
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV))
-                    menu.AddMenuOption(entry.PlayerName, (_, _) => { BanPlayer(entry); });
+                    menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { BanPlayer(entry); });
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -108,7 +108,7 @@ namespace MiniAdmin
                     var menu = new ChatMenu(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
-                        menu.AddMenuOption(entry.PlayerName, (_, _) => { BanPlayer(entry); });
+                        menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { BanPlayer(entry); });
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -130,7 +130,7 @@ namespace MiniAdmin
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
                 // add menu options
                 foreach (var kvp in Config.BannedPlayers)
-                    menu.AddMenuOption(kvp.Value.TryGetValue("name", out var name) ? name : kvp.Key, (_, _) => { UnbanPlayer(kvp.Key); });
+                    menu.AddMenuOption(kvp.Value.TryGetValue("name", out var name) ? name + $" ({kvp.Key})" : kvp.Key, (_, _) => { UnbanPlayer(kvp.Key); });
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -156,7 +156,7 @@ namespace MiniAdmin
                     var menu = new ChatMenu(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (string entry in players)
-                        menu.AddMenuOption(Config.BannedPlayers[entry].TryGetValue("name", out var name) ? name : entry, (_, _) => { UnbanPlayer(entry); });
+                        menu.AddMenuOption(Config.BannedPlayers[entry].TryGetValue("name", out var name) ? name + $" ({entry})" : entry, (_, _) => { UnbanPlayer(entry); });
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -181,7 +181,7 @@ namespace MiniAdmin
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV))
-                    menu.AddMenuOption(entry.PlayerName, (_, _) => { MutePlayer(entry); });
+                    menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { MutePlayer(entry); });
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -209,7 +209,7 @@ namespace MiniAdmin
                     var menu = new ChatMenu(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
-                        menu.AddMenuOption(entry.PlayerName, (_, _) => { MutePlayer(entry); });
+                        menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { MutePlayer(entry); });
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -231,7 +231,7 @@ namespace MiniAdmin
                 var menu = new ChatMenu(Localizer["command.menu.title"]);
                 // add menu options
                 foreach (var kvp in Config.MutedPlayers)
-                    menu.AddMenuOption(kvp.Value.TryGetValue("name", out var name) ? name : kvp.Key, (_, _) => { UnmutePlayer(kvp.Key); });
+                    menu.AddMenuOption(kvp.Value.TryGetValue("name", out var name) ? name + $" ({kvp.Key})" : kvp.Key, (_, _) => { UnmutePlayer(kvp.Key); });
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -257,7 +257,7 @@ namespace MiniAdmin
                     var menu = new ChatMenu(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (string entry in players)
-                        menu.AddMenuOption(Config.MutedPlayers[entry].TryGetValue("name", out var name) ? name : entry, (_, _) => { UnmutePlayer(entry); });
+                        menu.AddMenuOption(Config.MutedPlayers[entry].TryGetValue("name", out var name) ? name + $" ({entry})" : entry, (_, _) => { UnmutePlayer(entry); });
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
