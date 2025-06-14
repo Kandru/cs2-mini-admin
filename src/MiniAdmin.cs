@@ -24,7 +24,8 @@ namespace MiniAdmin
         {
             CCSPlayerController? player = @event.Userid;
             if (player == null
-                || !player.IsValid) return HookResult.Continue;
+                || !player.IsValid
+                || string.IsNullOrEmpty(player.NetworkIDString)) return HookResult.Continue;
             // kick player
             if (Config.BannedPlayers.ContainsKey(player.NetworkIDString))
             {
