@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> Work in progress. Might not work as expected. Use our [CS2 Update Manager](https://github.com/Kandru/cs2-update-manager/) to keep updated just in case :)
+
 # CounterstrikeSharp - Mini Admin
 
 [![UpdateManager Compatible](https://img.shields.io/badge/CS2-UpdateManager-darkgreen)](https://github.com/Kandru/cs2-update-manager/)
