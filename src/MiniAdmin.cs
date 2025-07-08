@@ -27,14 +27,14 @@ namespace MiniAdmin
                 || !player.IsValid
                 || string.IsNullOrEmpty(player.NetworkIDString)) return HookResult.Continue;
             // kick player
-            if (Config.BannedPlayers.ContainsKey(player.NetworkIDString))
+            if (Config.BannedPlayers.ContainsKey(player.SteamID))
             {
                 player.Disconnect(0);
                 Server.PrintToChatAll(Localizer["command.banned"].Value
                     .Replace("{player}", player.PlayerName));
             }
             // mute player
-            if (Config.MutedPlayers.ContainsKey(player.NetworkIDString))
+            if (Config.MutedPlayers.ContainsKey(player.SteamID))
             {
                 MutePlayer(player);
             }
@@ -59,9 +59,9 @@ namespace MiniAdmin
             // kick player
             player.Disconnect(0);
             // add to ban list if not already added
-            if (!Config.BannedPlayers.ContainsKey(player.NetworkIDString.ToString()))
+            if (!Config.BannedPlayers.ContainsKey(player.SteamID))
             {
-                Config.BannedPlayers.Add(player.NetworkIDString.ToString(), new Dictionary<string, string>
+                Config.BannedPlayers.Add(player.SteamID, new Dictionary<string, string>
                 {
                     { "name", player.PlayerName }
                 });
@@ -73,11 +73,10 @@ namespace MiniAdmin
             return true;
         }
 
-        private bool UnbanPlayer(string SteamID)
+        private bool UnbanPlayer(ulong SteamID)
         {
-            if (string.IsNullOrEmpty(SteamID)
-                || !Config.BannedPlayers.ContainsKey(SteamID)) return false;
-            string playerName = Config.BannedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID;
+            if (!Config.BannedPlayers.ContainsKey(SteamID)) return false;
+            string playerName = Config.BannedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID.ToString();
             // remove from ban list)
             Config.BannedPlayers.Remove(SteamID);
             // write to config
@@ -94,9 +93,9 @@ namespace MiniAdmin
             // mute player
             player.VoiceFlags = VoiceFlags.Muted;
             // add to ban list if not already added
-            if (!Config.MutedPlayers.ContainsKey(player.NetworkIDString.ToString()))
+            if (!Config.MutedPlayers.ContainsKey(player.SteamID))
             {
-                Config.MutedPlayers.Add(player.NetworkIDString.ToString(), new Dictionary<string, string>
+                Config.MutedPlayers.Add(player.SteamID, new Dictionary<string, string>
                 {
                     { "name", player.PlayerName }
                 });
@@ -108,17 +107,16 @@ namespace MiniAdmin
             return true;
         }
 
-        private bool UnmutePlayer(string SteamID)
+        private bool UnmutePlayer(ulong SteamID)
         {
-            if (string.IsNullOrEmpty(SteamID)
-                || !Config.MutedPlayers.ContainsKey(SteamID)) return false;
-            string playerName = Config.MutedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID;
+            if (!Config.MutedPlayers.ContainsKey(SteamID)) return false;
+            string playerName = Config.MutedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID.ToString();
             // remove from mute list)
             Config.MutedPlayers.Remove(SteamID);
             // write to config
             Config.Update();
             // check if player is online
-            var players = Utilities.GetPlayers().Where(p => p.IsValid && p.NetworkIDString.ToLower() == SteamID.ToLower());
+            var players = Utilities.GetPlayers().Where(p => p.IsValid && p.SteamID == SteamID);
             if (players.Count() == 1)
             {
                 var player = players.First();

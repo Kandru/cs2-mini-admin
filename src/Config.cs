@@ -11,9 +11,9 @@ namespace MiniAdmin
         // debug prints
         [JsonPropertyName("debug")] public bool Debug { get; set; } = false;
         // banned players
-        [JsonPropertyName("players_banned")] public Dictionary<string, Dictionary<string, string>> BannedPlayers { get; set; } = [];
+        [JsonPropertyName("players_banned")] public Dictionary<ulong, Dictionary<string, string>> BannedPlayers { get; set; } = [];
         // muted players
-        [JsonPropertyName("players_muted")] public Dictionary<string, Dictionary<string, string>> MutedPlayers { get; set; } = [];
+        [JsonPropertyName("players_muted")] public Dictionary<ulong, Dictionary<string, string>> MutedPlayers { get; set; } = [];
     }
 
     public partial class MiniAdmin : BasePlugin, IPluginConfig<PluginConfig>
