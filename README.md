@@ -50,6 +50,10 @@ Mutes a player by his name. Will provide a list of all online players if no play
 
 Unmutes a player by his Steam ID or last known name. Will provide a list of all muted players if no player name was entered. Will provide a list of all matching player names to choose from.
 
+### !restart <delay>
+
+Restarts the match by optionally providing a delay (default = 3 seconds).
+
 ## Compile Yourself
 
 Clone the project:

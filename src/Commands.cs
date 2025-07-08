@@ -263,5 +263,18 @@ namespace MiniAdmin
                 }
             }
         }
+
+        [ConsoleCommand("restart", "restarts the match")]
+        [RequiresPermissions("@miniadmin/restart")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        public void CommandRestart(CCSPlayerController player, CommandInfo command)
+        {
+            int delay = 3;
+            if (command.ArgCount > 1 && int.TryParse(command.GetArg(1), out var parsedDelay) && parsedDelay >= 0)
+            {
+                delay = parsedDelay;
+            }
+            RestartMatch(delay);
+        }
     }
 }

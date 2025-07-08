@@ -131,5 +131,13 @@ namespace MiniAdmin
             .Replace("{player}", playerName));
             return true;
         }
+
+        private bool RestartMatch(int delay = 3)
+        {
+            // restart match
+            Server.ExecuteCommand($"mp_restartgame {delay}");
+            Server.PrintToChatAll(Localizer["command.restart"]);
+            return true;
+        }
     }
 }

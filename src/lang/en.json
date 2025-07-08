@@ -9,5 +9,6 @@
     "command.unban": "[MiniAdmin] {green}{player} {default}has been unbanned",
     "command.mute": "[MiniAdmin] {green}{player} {default}has been muted",
     "command.muted": "[MiniAdmin] {green}{player} {default}is muted serverwide",
-    "command.unmute": "[MiniAdmin] {green}{player} {default}has been unmuted"
+    "command.unmute": "[MiniAdmin] {green}{player} {default}has been unmuted",
+    "command.restart": "[MiniAdmin] Map is restarting"
 }
