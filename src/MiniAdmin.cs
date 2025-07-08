@@ -36,9 +36,7 @@ namespace MiniAdmin
             // mute player
             if (Config.MutedPlayers.ContainsKey(player.NetworkIDString))
             {
-                player.SetListenOverride(player, ListenOverride.Mute);
-                Server.PrintToChatAll(Localizer["command.muted"].Value
-                    .Replace("{player}", player.PlayerName));
+                MutePlayer(player);
             }
             return HookResult.Continue;
         }
@@ -94,7 +92,7 @@ namespace MiniAdmin
             if (player == null
                 || !player.IsValid) return false;
             // mute player
-            player.SetListenOverride(player, ListenOverride.Mute);
+            player.VoiceFlags = VoiceFlags.Muted;
             // add to ban list if not already added
             if (!Config.MutedPlayers.ContainsKey(player.NetworkIDString.ToString()))
             {
@@ -125,7 +123,7 @@ namespace MiniAdmin
             {
                 var player = players.First();
                 // unmute player
-                player.SetListenOverride(player, ListenOverride.Default);
+                player.VoiceFlags = VoiceFlags.Normal;
             }
             Server.PrintToChatAll(Localizer["command.unmute"].Value
             .Replace("{player}", playerName));
