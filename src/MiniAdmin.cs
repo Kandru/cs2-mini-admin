@@ -25,7 +25,10 @@ namespace MiniAdmin
             CCSPlayerController? player = @event.Userid;
             if (player == null
                 || !player.IsValid
-                || string.IsNullOrEmpty(player.NetworkIDString)) return HookResult.Continue;
+                || string.IsNullOrEmpty(player.NetworkIDString))
+            {
+                return HookResult.Continue;
+            }
             // kick player
             if (Config.BannedPlayers.ContainsKey(player.SteamID))
             {
@@ -36,7 +39,7 @@ namespace MiniAdmin
             // mute player
             if (Config.MutedPlayers.ContainsKey(player.SteamID))
             {
-                MutePlayer(player);
+                _ = MutePlayer(player);
             }
             return HookResult.Continue;
         }
@@ -44,7 +47,10 @@ namespace MiniAdmin
         private bool KickPlayer(CCSPlayerController player)
         {
             if (player == null
-                || !player.IsValid) return false;
+                || !player.IsValid)
+            {
+                return false;
+            }
             // kick player
             player.Disconnect(0);
             Server.PrintToChatAll(Localizer["command.kick"].Value
@@ -55,7 +61,10 @@ namespace MiniAdmin
         private bool BanPlayer(CCSPlayerController player)
         {
             if (player == null
-                || !player.IsValid) return false;
+                || !player.IsValid)
+            {
+                return false;
+            }
             // kick player
             player.Disconnect(0);
             // add to ban list if not already added
@@ -75,10 +84,14 @@ namespace MiniAdmin
 
         private bool UnbanPlayer(ulong SteamID)
         {
-            if (!Config.BannedPlayers.ContainsKey(SteamID)) return false;
-            string playerName = Config.BannedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID.ToString();
+            if (!Config.BannedPlayers.ContainsKey(SteamID))
+            {
+                return false;
+            }
+
+            string playerName = Config.BannedPlayers[SteamID].TryGetValue("name", out string? name) ? name : SteamID.ToString();
             // remove from ban list)
-            Config.BannedPlayers.Remove(SteamID);
+            _ = Config.BannedPlayers.Remove(SteamID);
             // write to config
             Config.Update();
             Server.PrintToChatAll(Localizer["command.unban"].Value
@@ -89,7 +102,10 @@ namespace MiniAdmin
         private bool MutePlayer(CCSPlayerController player)
         {
             if (player == null
-                || !player.IsValid) return false;
+                || !player.IsValid)
+            {
+                return false;
+            }
             // mute player
             player.VoiceFlags = VoiceFlags.Muted;
             // add to ban list if not already added
@@ -109,17 +125,21 @@ namespace MiniAdmin
 
         private bool UnmutePlayer(ulong SteamID)
         {
-            if (!Config.MutedPlayers.ContainsKey(SteamID)) return false;
-            string playerName = Config.MutedPlayers[SteamID].TryGetValue("name", out var name) ? name : SteamID.ToString();
+            if (!Config.MutedPlayers.ContainsKey(SteamID))
+            {
+                return false;
+            }
+
+            string playerName = Config.MutedPlayers[SteamID].TryGetValue("name", out string? name) ? name : SteamID.ToString();
             // remove from mute list)
-            Config.MutedPlayers.Remove(SteamID);
+            _ = Config.MutedPlayers.Remove(SteamID);
             // write to config
             Config.Update();
             // check if player is online
-            var players = Utilities.GetPlayers().Where(p => p.IsValid && p.SteamID == SteamID);
+            IEnumerable<CCSPlayerController> players = Utilities.GetPlayers().Where(p => p.IsValid && p.SteamID == SteamID);
             if (players.Count() == 1)
             {
-                var player = players.First();
+                CCSPlayerController player = players.First();
                 // unmute player
                 player.VoiceFlags = VoiceFlags.Normal;
             }

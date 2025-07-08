@@ -18,16 +18,18 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null || playerName == "")
+            if (playerName is null or "")
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["command.menu.title"]);
+                ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
                 foreach (CCSPlayerController entry in Utilities.GetPlayers()
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV))
-                    menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { KickPlayer(entry); });
+                {
+                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = KickPlayer(entry); });
+                }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -38,8 +40,11 @@ namespace MiniAdmin
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV
-                        && p.PlayerName.ToLower().Contains(playerName.ToLower())))
+                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
                     players.Add(entry);
+                }
+
                 if (players.Count == 0)
                 {
                     command.ReplyToCommand(Localizer["command.playernotfound"].Value
@@ -47,15 +52,17 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    KickPlayer(players.First());
+                    _ = KickPlayer(players.First());
                 }
                 else
                 {
                     // create menu to choose map
-                    var menu = new ChatMenu(Localizer["command.menu.title"]);
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
-                        menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { KickPlayer(entry); });
+                    {
+                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = KickPlayer(entry); });
+                    }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -71,16 +78,18 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null || playerName == "")
+            if (playerName is null or "")
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["command.menu.title"]);
+                ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
                 foreach (CCSPlayerController entry in Utilities.GetPlayers()
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV))
-                    menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { BanPlayer(entry); });
+                {
+                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = BanPlayer(entry); });
+                }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -91,8 +100,11 @@ namespace MiniAdmin
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV
-                        && p.PlayerName.ToLower().Contains(playerName.ToLower())))
+                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
                     players.Add(entry);
+                }
+
                 if (players.Count == 0)
                 {
                     command.ReplyToCommand(Localizer["command.playernotfound"].Value
@@ -100,15 +112,17 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    BanPlayer(players.First());
+                    _ = BanPlayer(players.First());
                 }
                 else
                 {
                     // create menu to choose map
-                    var menu = new ChatMenu(Localizer["command.menu.title"]);
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
-                        menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { BanPlayer(entry); });
+                    {
+                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = BanPlayer(entry); });
+                    }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -124,23 +138,28 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null || playerName == "")
+            if (playerName is null or "")
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["command.menu.title"]);
+                ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (var kvp in Config.BannedPlayers)
-                    menu.AddMenuOption(kvp.Value.TryGetValue("name", out var name) ? name + $" ({kvp.Key})" : kvp.Key.ToString(), (_, _) => { UnbanPlayer(kvp.Key); });
+                foreach (KeyValuePair<ulong, Dictionary<string, string>> kvp in Config.BannedPlayers)
+                {
+                    _ = menu.AddMenuOption(kvp.Value.TryGetValue("name", out string? name) ? name + $" ({kvp.Key})" : kvp.Key.ToString(), (_, _) => { _ = UnbanPlayer(kvp.Key); });
+                }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
             else
             {
                 List<ulong> players = [];
-                foreach (var kvp in Config.BannedPlayers.Where(
-                    kvp => kvp.Key.ToString() == playerName.ToLower()
-                    || (kvp.Value.TryGetValue("name", out var name) && name.ToLower().Contains(playerName.ToLower()))))
+                foreach (KeyValuePair<ulong, Dictionary<string, string>> kvp in Config.BannedPlayers.Where(
+                    kvp => kvp.Key.ToString().Equals(playerName, StringComparison.OrdinalIgnoreCase)
+                    || (kvp.Value.TryGetValue("name", out string? name) && name.Contains(playerName, StringComparison.CurrentCultureIgnoreCase))))
+                {
                     players.Add(kvp.Key);
+                }
+
                 if (players.Count == 0)
                 {
                     command.ReplyToCommand(Localizer["command.playernotfound"].Value
@@ -148,15 +167,17 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    UnbanPlayer(players.First());
+                    _ = UnbanPlayer(players.First());
                 }
                 else
                 {
                     // create menu to choose map
-                    var menu = new ChatMenu(Localizer["command.menu.title"]);
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (ulong entry in players)
-                        menu.AddMenuOption(Config.BannedPlayers[entry].TryGetValue("name", out var name) ? name + $" ({entry})" : entry.ToString(), (_, _) => { UnbanPlayer(entry); });
+                    {
+                        _ = menu.AddMenuOption(Config.BannedPlayers[entry].TryGetValue("name", out string? name) ? name + $" ({entry})" : entry.ToString(), (_, _) => { _ = UnbanPlayer(entry); });
+                    }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -172,16 +193,18 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null || playerName == "")
+            if (playerName is null or "")
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["command.menu.title"]);
+                ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
                 foreach (CCSPlayerController entry in Utilities.GetPlayers()
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV))
-                    menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { MutePlayer(entry); });
+                {
+                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = MutePlayer(entry); });
+                }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
@@ -192,8 +215,11 @@ namespace MiniAdmin
                     .Where(p => p.IsValid
                         && !p.IsBot
                         && !p.IsHLTV
-                        && p.PlayerName.ToLower().Contains(playerName.ToLower())))
+                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
                     players.Add(entry);
+                }
+
                 if (players.Count == 0)
                 {
                     command.ReplyToCommand(Localizer["command.playernotfound"].Value
@@ -201,15 +227,17 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    MutePlayer(players.First());
+                    _ = MutePlayer(players.First());
                 }
                 else
                 {
                     // create menu to choose map
-                    var menu = new ChatMenu(Localizer["command.menu.title"]);
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
-                        menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { MutePlayer(entry); });
+                    {
+                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = MutePlayer(entry); });
+                    }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -225,23 +253,28 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
-            if (playerName == null || playerName == "")
+            if (playerName is null or "")
             {
                 // create menu to choose map
-                var menu = new ChatMenu(Localizer["command.menu.title"]);
+                ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (var kvp in Config.MutedPlayers)
-                    menu.AddMenuOption(kvp.Value.TryGetValue("name", out var name) ? name + $" ({kvp.Key})" : kvp.Key.ToString(), (_, _) => { UnmutePlayer(kvp.Key); });
+                foreach (KeyValuePair<ulong, Dictionary<string, string>> kvp in Config.MutedPlayers)
+                {
+                    _ = menu.AddMenuOption(kvp.Value.TryGetValue("name", out string? name) ? name + $" ({kvp.Key})" : kvp.Key.ToString(), (_, _) => { _ = UnmutePlayer(kvp.Key); });
+                }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
             }
             else
             {
                 List<ulong> players = [];
-                foreach (var kvp in Config.MutedPlayers.Where(
-                    kvp => kvp.Key.ToString() == playerName.ToLower()
-                    || (kvp.Value.TryGetValue("name", out var name) && name.ToLower().Contains(playerName.ToLower()))))
+                foreach (KeyValuePair<ulong, Dictionary<string, string>> kvp in Config.MutedPlayers.Where(
+                    kvp => kvp.Key.ToString().Equals(playerName, StringComparison.OrdinalIgnoreCase)
+                    || (kvp.Value.TryGetValue("name", out string? name) && name.Contains(playerName, StringComparison.CurrentCultureIgnoreCase))))
+                {
                     players.Add(kvp.Key);
+                }
+
                 if (players.Count == 0)
                 {
                     command.ReplyToCommand(Localizer["command.playernotfound"].Value
@@ -249,15 +282,17 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    UnmutePlayer(players.First());
+                    _ = UnmutePlayer(players.First());
                 }
                 else
                 {
                     // create menu to choose map
-                    var menu = new ChatMenu(Localizer["command.menu.title"]);
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (ulong entry in players)
-                        menu.AddMenuOption(Config.MutedPlayers[entry].TryGetValue("name", out var name) ? name + $" ({entry})" : entry.ToString(), (_, _) => { UnmutePlayer(entry); });
+                    {
+                        _ = menu.AddMenuOption(Config.MutedPlayers[entry].TryGetValue("name", out string? name) ? name + $" ({entry})" : entry.ToString(), (_, _) => { _ = UnmutePlayer(entry); });
+                    }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
                 }
@@ -270,11 +305,11 @@ namespace MiniAdmin
         public void CommandRestart(CCSPlayerController player, CommandInfo command)
         {
             int delay = 3;
-            if (command.ArgCount > 1 && int.TryParse(command.GetArg(1), out var parsedDelay) && parsedDelay >= 0)
+            if (command.ArgCount > 1 && int.TryParse(command.GetArg(1), out int parsedDelay) && parsedDelay >= 0)
             {
                 delay = parsedDelay;
             }
-            RestartMatch(delay);
+            _ = RestartMatch(delay);
         }
     }
 }
