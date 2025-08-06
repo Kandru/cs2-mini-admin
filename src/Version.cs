@@ -2,6 +2,6 @@ namespace MiniAdmin
 {
     public partial class MiniAdmin
     {
-        public override string ModuleVersion => "0.0.6";
+        public override string ModuleVersion => "0.0.7";
     }
 }
