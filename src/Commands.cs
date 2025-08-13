@@ -301,7 +301,7 @@ namespace MiniAdmin
 
         [ConsoleCommand("restart", "restarts the match")]
         [RequiresPermissions("@miniadmin/restart")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<delay>")]
         public void CommandRestart(CCSPlayerController player, CommandInfo command)
         {
             int delay = 3;
