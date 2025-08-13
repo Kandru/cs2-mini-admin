@@ -469,5 +469,71 @@ namespace MiniAdmin
                 }
             }
         }
+
+        [ConsoleCommand("respawn", "respawns a player")]
+        [RequiresPermissions("@miniadmin/respawn")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        public void CommandRespawn(CCSPlayerController player, CommandInfo command)
+        {
+            // close menu
+            MenuManager.CloseActiveMenu(player);
+            // get player name / id / whatever
+            string? playerName = command.GetArg(1);
+            if (playerName is null or "")
+            {
+                // create menu to choose player
+                ChatMenu menu = new(Localizer["command.menu.title"]);
+                // add menu options
+                foreach (CCSPlayerController entry in Utilities.GetPlayers()
+                    .Where(p => p.IsValid
+                        && !p.IsBot
+                        && !p.IsHLTV))
+                {
+                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                    {
+                        entry.Respawn();
+                    });
+                }
+                // show menu
+                MenuManager.OpenChatMenu(player, menu);
+            }
+            else
+            {
+                List<CCSPlayerController> players = [];
+                foreach (CCSPlayerController entry in Utilities.GetPlayers()
+                    .Where(p => p.IsValid
+                        && !p.IsBot
+                        && !p.IsHLTV
+                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    players.Add(entry);
+                }
+
+                if (players.Count == 0)
+                {
+                    command.ReplyToCommand(Localizer["command.playernotfound"].Value
+                        .Replace("{player}", playerName));
+                }
+                else if (players.Count == 1)
+                {
+                    players.First().Respawn();
+                }
+                else
+                {
+                    // create menu to choose map
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
+                    // add menu options
+                    foreach (CCSPlayerController entry in players)
+                    {
+                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                        {
+                            entry.Respawn();
+                        });
+                    }
+                    // show menu
+                    MenuManager.OpenChatMenu(player, menu);
+                }
+            }
+        }
     }
 }

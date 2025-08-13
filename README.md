@@ -78,6 +78,12 @@ Switches the team of the player, has the same effect as the "jointeam" console c
 
 Forcibly switches the team of the player, the player will remain alive and keep their weapons.
 
+### !respawn <player>
+
+**Permission: @miniadmin/respawn**
+
+Respawns a given player.
+
 ## Compile Yourself
 
 Clone the project:
