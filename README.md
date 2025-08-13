@@ -32,27 +32,51 @@ This plugin automatically creates a readable JSON configuration file. This confi
 
 ### !kick <player> (@miniadmin/kick)
 
+**Permission: @miniadmin/kick**
+
 Kicks a player by his name. Will provide a list of all online players if no player name was entered. Will provide a list of all matching player names to choose from. Will kick the selected player instantly.
 
 ### !ban <player> (@miniadmin/ban)
+
+**Permission: @miniadmin/ban**
 
 Bans a player by his name. Will provide a list of all online players if no player name was entered. Will provide a list of all matching player names to choose from. Will kick & ban the selected player instantly.
 
 ### !unban <player> (@miniadmin/ban)
 
+**Permission: @miniadmin/ban**
+
 Unbans a player by his Steam ID or last known name. Will provide a list of all banned players if no player name was entered. Will provide a list of all matching player names to choose from.
 
 ### !mute <player> (@miniadmin/ban)
+
+**Permission: @miniadmin/mute**
 
 Mutes a player by his name. Will provide a list of all online players if no player name was entered. Will provide a list of all matching player names to choose from. Will mute instantly.
 
 ### !unmute <player> (@miniadmin/ban)
 
+**Permission: @miniadmin/mute**
+
 Unmutes a player by his Steam ID or last known name. Will provide a list of all muted players if no player name was entered. Will provide a list of all matching player names to choose from.
 
 ### !restart <delay>
 
+**Permission: @miniadmin/restart**
+
 Restarts the match by optionally providing a delay (default = 3 seconds).
+
+### !switch <player> <t/ct/s>
+
+**Permission: @miniadmin/switch**
+
+Switches the team of the player, has the same effect as the "jointeam" console command. This follows gamemode rules, so this will usually cause a player suicide/loss of weapons.
+
+### !fswitch <player> <t/ct/s>
+
+**Permission: @miniadmin/switch**
+
+Forcibly switches the team of the player, the player will remain alive and keep their weapons.
 
 ## Compile Yourself
 

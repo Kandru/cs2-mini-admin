@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Menu;
+using CounterStrikeSharp.API.Modules.Utils;
 
 namespace MiniAdmin
 {
@@ -195,7 +196,7 @@ namespace MiniAdmin
             string? playerName = command.GetArg(1);
             if (playerName is null or "")
             {
-                // create menu to choose map
+                // create menu to choose player
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
                 foreach (CCSPlayerController entry in Utilities.GetPlayers()
@@ -310,6 +311,163 @@ namespace MiniAdmin
                 delay = parsedDelay;
             }
             _ = RestartMatch(delay);
+        }
+
+        [ConsoleCommand("fswitch", "forcefully switches the teams")]
+        [RequiresPermissions("@miniadmin/switch")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player> <team>")]
+        public void CommandForceSwitch(CCSPlayerController player, CommandInfo command)
+        {
+            // close menu
+            MenuManager.CloseActiveMenu(player);
+            // get player name / id / whatever
+            string? playerName = command.GetArg(1);
+            if (playerName is null or "")
+            {
+                // create menu to choose player
+                ChatMenu menu = new(Localizer["command.menu.title"]);
+                // add menu options
+                foreach (CCSPlayerController entry in Utilities.GetPlayers()
+                    .Where(p => p.IsValid
+                        && !p.IsBot
+                        && !p.IsHLTV))
+                {
+                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                    {
+                        CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                        entry.SwitchTeam(newTeam);
+                    });
+                }
+                // show menu
+                MenuManager.OpenChatMenu(player, menu);
+            }
+            else
+            {
+                List<CCSPlayerController> players = [];
+                foreach (CCSPlayerController entry in Utilities.GetPlayers()
+                    .Where(p => p.IsValid
+                        && !p.IsBot
+                        && !p.IsHLTV
+                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    players.Add(entry);
+                }
+
+                if (players.Count == 0)
+                {
+                    command.ReplyToCommand(Localizer["command.playernotfound"].Value
+                        .Replace("{player}", playerName));
+                }
+                else if (players.Count == 1)
+                {
+                    CsTeam newTeam = players.First().Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                    players.First().SwitchTeam(newTeam);
+                }
+                else
+                {
+                    // create menu to choose map
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
+                    // add menu options
+                    foreach (CCSPlayerController entry in players)
+                    {
+                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                        {
+                            CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                            entry.SwitchTeam(newTeam);
+                        });
+                    }
+                    // show menu
+                    MenuManager.OpenChatMenu(player, menu);
+                }
+            }
+        }
+
+        [ConsoleCommand("switch", "switches the teams")]
+        [RequiresPermissions("@miniadmin/switch")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player> <team>")]
+        public void CommandSwitch(CCSPlayerController player, CommandInfo command)
+        {
+            // close menu
+            MenuManager.CloseActiveMenu(player);
+            // get team if any
+            string? teamName = command.GetArg(2);
+            // team to CsTeam value if found, default to null
+            CsTeam newTeam = teamName?.ToLowerInvariant() switch
+            {
+                string s when s.Contains("ter") || s == "t" => CsTeam.Terrorist,
+                string s when s.Contains("count") || s == "ct" => CsTeam.CounterTerrorist,
+                string s when s.Contains("spec") || s == "s" => CsTeam.Spectator,
+                _ => CsTeam.None
+            };
+            // get player name / id / whatever
+            string? playerName = command.GetArg(1);
+            if (playerName is null or "")
+            {
+                // create menu to choose player
+                ChatMenu menu = new(Localizer["command.menu.title"]);
+                // add menu options
+                foreach (CCSPlayerController entry in Utilities.GetPlayers()
+                    .Where(p => p.IsValid
+                        && !p.IsBot
+                        && !p.IsHLTV))
+                {
+                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                    {
+                        if (newTeam == CsTeam.None)
+                        {
+                            newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                        }
+                        entry.ChangeTeam(newTeam);
+                    });
+                }
+                // show menu
+                MenuManager.OpenChatMenu(player, menu);
+            }
+            else
+            {
+                List<CCSPlayerController> players = [];
+                foreach (CCSPlayerController entry in Utilities.GetPlayers()
+                    .Where(p => p.IsValid
+                        && !p.IsBot
+                        && !p.IsHLTV
+                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    players.Add(entry);
+                }
+
+                if (players.Count == 0)
+                {
+                    command.ReplyToCommand(Localizer["command.playernotfound"].Value
+                        .Replace("{player}", playerName));
+                }
+                else if (players.Count == 1)
+                {
+                    if (newTeam == CsTeam.None)
+                    {
+                        newTeam = players.First().Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                    }
+                    players.First().ChangeTeam(newTeam);
+                }
+                else
+                {
+                    // create menu to choose map
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
+                    // add menu options
+                    foreach (CCSPlayerController entry in players)
+                    {
+                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                        {
+                            if (newTeam == CsTeam.None)
+                            {
+                                newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                            }
+                            entry.ChangeTeam(newTeam);
+                        });
+                    }
+                    // show menu
+                    MenuManager.OpenChatMenu(player, menu);
+                }
+            }
         }
     }
 }
