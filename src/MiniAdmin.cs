@@ -10,7 +10,7 @@ namespace MiniAdmin
 
         // use a dictionary for the connected players to save information to save:
         // - the player name on connection to avoid fast name-changing hacks and allow the player to be identified properly
-        // entries: name, steam_id
+        // entries: name, steam_id, timestamp (CurrentTime)
         private readonly Dictionary<CCSPlayerController, Dictionary<string, string>> _connectedPlayers = [];
 
         public override void Load(bool hotReload)
@@ -47,6 +47,7 @@ namespace MiniAdmin
             // update player data in dictionary
             _connectedPlayers[player]["name"] = player.PlayerName;
             _connectedPlayers[player]["steam_id"] = player.SteamID.ToString();
+            _connectedPlayers[player]["timestamp"] = Server.CurrentTime.ToString();
             // kick player
             if (Config.BannedPlayers.ContainsKey(player.SteamID))
             {
