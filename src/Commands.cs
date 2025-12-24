@@ -28,7 +28,7 @@ namespace MiniAdmin
                 {
                     string name = kvp.Value["name"];
                     string steam_id = kvp.Value["steam_id"];
-                    double time_online = Math.Round(Server.CurrentTime - float.Parse(kvp.Value["timestamp"]), 2);
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
                     _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = KickPlayer(kvp.Key); });
                 }
                 // show menu
@@ -62,7 +62,7 @@ namespace MiniAdmin
                     {
                         string name = _connectedPlayers[entry]["name"];
                         string steam_id = _connectedPlayers[entry]["steam_id"];
-                        double time_online = Math.Round(Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]), 2);
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
                         _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = KickPlayer(entry); });
                     }
                     // show menu
@@ -89,7 +89,7 @@ namespace MiniAdmin
                 {
                     string name = kvp.Value["name"];
                     string steam_id = kvp.Value["steam_id"];
-                    double time_online = Math.Round(Server.CurrentTime - float.Parse(kvp.Value["timestamp"]), 2);
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
                     _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = BanPlayer(kvp.Key); });
                 }
                 // show menu
@@ -123,7 +123,7 @@ namespace MiniAdmin
                     {
                         string name = _connectedPlayers[entry]["name"];
                         string steam_id = _connectedPlayers[entry]["steam_id"];
-                        double time_online = Math.Round(Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]), 2);
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
                         _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = BanPlayer(entry); });
                     }
                     // show menu
