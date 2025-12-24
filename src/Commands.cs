@@ -24,12 +24,9 @@ namespace MiniAdmin
                 // create menu to choose map
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV))
+                foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = KickPlayer(entry); });
+                    _ = menu.AddMenuOption($"{kvp.Value["name"]} ({kvp.Value["steam_id"]})", (_, _) => { _ = KickPlayer(kvp.Key); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -37,13 +34,11 @@ namespace MiniAdmin
             else
             {
                 List<CCSPlayerController> players = [];
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV
-                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    players.Add(entry);
+                    players.Add(kvp.Key);
                 }
 
                 if (players.Count == 0)
@@ -57,12 +52,14 @@ namespace MiniAdmin
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
                     {
-                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = KickPlayer(entry); });
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        _ = menu.AddMenuOption($"{name} ({steam_id})", (_, _) => { _ = KickPlayer(entry); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
@@ -84,12 +81,9 @@ namespace MiniAdmin
                 // create menu to choose map
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV))
+                foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = BanPlayer(entry); });
+                    _ = menu.AddMenuOption($"{kvp.Value["name"]} ({kvp.Value["steam_id"]})", (_, _) => { _ = BanPlayer(kvp.Key); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -97,13 +91,11 @@ namespace MiniAdmin
             else
             {
                 List<CCSPlayerController> players = [];
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV
-                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    players.Add(entry);
+                    players.Add(kvp.Key);
                 }
 
                 if (players.Count == 0)
@@ -117,12 +109,14 @@ namespace MiniAdmin
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
                     {
-                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = BanPlayer(entry); });
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        _ = menu.AddMenuOption($"{name} ({steam_id})", (_, _) => { _ = BanPlayer(entry); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
@@ -172,7 +166,7 @@ namespace MiniAdmin
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (ulong entry in players)
@@ -196,15 +190,12 @@ namespace MiniAdmin
             string? playerName = command.GetArg(1);
             if (playerName is null or "")
             {
-                // create menu to choose player
+                // create menu to choose map
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV))
+                foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = MutePlayer(entry); });
+                    _ = menu.AddMenuOption($"{kvp.Value["name"]} ({kvp.Value["steam_id"]})", (_, _) => { _ = MutePlayer(kvp.Key); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -212,13 +203,11 @@ namespace MiniAdmin
             else
             {
                 List<CCSPlayerController> players = [];
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV
-                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    players.Add(entry);
+                    players.Add(kvp.Key);
                 }
 
                 if (players.Count == 0)
@@ -232,12 +221,14 @@ namespace MiniAdmin
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
                     {
-                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) => { _ = MutePlayer(entry); });
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        _ = menu.AddMenuOption($"{name} ({steam_id})", (_, _) => { _ = MutePlayer(entry); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);

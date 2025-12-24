@@ -10,6 +10,7 @@ namespace MiniAdmin
 
         // use a dictionary for the connected players to save information to save:
         // - the player name on connection to avoid fast name-changing hacks and allow the player to be identified properly
+        // entries: name, steam_id
         private readonly Dictionary<CCSPlayerController, Dictionary<string, string>> _connectedPlayers = [];
 
         public override void Load(bool hotReload)
