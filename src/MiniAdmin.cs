@@ -17,6 +17,7 @@ namespace MiniAdmin
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
+            RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
         }
 
         public override void Unload(bool hotReload)
@@ -24,6 +25,7 @@ namespace MiniAdmin
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
             DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             DeregisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
+            RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
         }
 
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
@@ -75,6 +77,13 @@ namespace MiniAdmin
                 _connectedPlayers.Remove(player);
             }
             return HookResult.Continue;
+        }
+
+        private void OnMapEnd()
+        {
+            // reset dictionaries
+            _connectedPlayers.Clear();
+            _detectionNameChange.Clear();
         }
     }
 }
