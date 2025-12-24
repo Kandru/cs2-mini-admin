@@ -16,12 +16,14 @@ namespace MiniAdmin
         {
             RegisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            RegisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
         }
 
         public override void Unload(bool hotReload)
         {
             DeregisterEventHandler<EventPlayerConnectFull>(OnPlayerConnectFull);
             DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
+            DeregisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
         }
 
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)

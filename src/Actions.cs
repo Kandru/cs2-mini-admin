@@ -19,7 +19,7 @@ namespace MiniAdmin
                 .Replace("{player}", player.PlayerName));
             return true;
         }
-        private bool BanPlayer(CCSPlayerController player)
+        private bool BanPlayer(CCSPlayerController player, string reason = "Unknown")
         {
             if (player == null
                 || !player.IsValid)
@@ -33,13 +33,15 @@ namespace MiniAdmin
             {
                 Config.BannedPlayers.Add(player.SteamID, new Dictionary<string, string>
                 {
-                    { "name", player.PlayerName }
+                    { "name", player.PlayerName },
+                    { "reason", reason}
                 });
                 // write to config
                 Config.Update();
             }
             Server.PrintToChatAll(Localizer["command.ban"].Value
-                .Replace("{player}", player.PlayerName));
+                .Replace("{player}", player.PlayerName)
+                .Replace("{reason}", reason));
             return true;
         }
 

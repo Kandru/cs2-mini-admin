@@ -4,11 +4,12 @@
     "command.menu.title": "[MiniAdmin] Menu",
     "command.playernotfound": "[MiniAdmin] {default}Player {green}{player} {default}not found",
     "command.kick": "[MiniAdmin] {green}{player} {default}kicked from the server",
-    "command.ban": "[MiniAdmin] {green}{player} {default}has been banned",
+    "command.ban": "[MiniAdmin] {green}{player} {default}has been banned for {green}{reason}{default}.",
     "command.banned": "[MiniAdmin] {green}{player} {default}is banned",
     "command.unban": "[MiniAdmin] {green}{player} {default}has been unbanned",
     "command.mute": "[MiniAdmin] {green}{player} {default}has been muted",
     "command.muted": "[MiniAdmin] {green}{player} {default}is muted serverwide",
     "command.unmute": "[MiniAdmin] {green}{player} {default}has been unmuted",
-    "command.restart": "[MiniAdmin] Map is restarting"
+    "command.restart": "[MiniAdmin] Map is restarting",
+    "detection.namechange": "[MiniAdmin] {green}{player} {default} changed their name to often. Action: {green}{action}{default}."
 }

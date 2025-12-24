@@ -4,11 +4,12 @@
     "command.menu.title": "[MiniAdmin] Menü",
     "command.playernotfound": "[MiniAdmin] {default}Spieler {green}{player} {default}nicht gefunden",
     "command.kick": "[MiniAdmin] {green}{player} {default}vom Server verwiesen",
-    "command.ban": "[MiniAdmin] {green}{player} {default}wurde gebannt",
+    "command.ban": "[MiniAdmin] {green}{player} {default}wurde gebannt wegen {green}{reason}{default}.",
     "command.banned": "[MiniAdmin] {green}{player} {default}ist gebannt",
     "command.unban": "[MiniAdmin] {green}{player} {default}wurde entbannt",
     "command.mute": "[MiniAdmin] {green}{player} {default}wurde stummgeschaltet",
     "command.muted": "[MiniAdmin] {green}{player} {default}ist serverweit stummgeschaltet",
     "command.unmute": "[MiniAdmin] {green}{player} {default}ist nicht mehr stummgeschaltet",
-    "command.restart": "[MiniAdmin] Karte wird neu gestartet"
+    "command.restart": "[MiniAdmin] Karte wird neu gestartet",
+    "detection.namechange": "[MiniAdmin] {green}{player} {default} hat den Namen zu häufig geändert. Aktion: {green}{action}{default}."
 }
