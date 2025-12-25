@@ -203,7 +203,10 @@ namespace MiniAdmin
                 // add menu options
                 foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{kvp.Value["name"]} ({kvp.Value["steam_id"]})", (_, _) => { _ = MutePlayer(kvp.Key); });
+                    string name = kvp.Value["name"];
+                    string steam_id = kvp.Value["steam_id"];
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = MutePlayer(kvp.Key); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -236,7 +239,8 @@ namespace MiniAdmin
                     {
                         string name = _connectedPlayers[entry]["name"];
                         string steam_id = _connectedPlayers[entry]["steam_id"];
-                        _ = menu.AddMenuOption($"{name} ({steam_id})", (_, _) => { _ = MutePlayer(entry); });
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = MutePlayer(entry); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
@@ -323,18 +327,23 @@ namespace MiniAdmin
             string? playerName = command.GetArg(1);
             if (playerName is null or "")
             {
-                // create menu to choose player
+                // create menu to choose map
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV))
+                foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                    string name = kvp.Value["name"];
+                    string steam_id = kvp.Value["steam_id"];
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
                     {
-                        CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                        entry.SwitchTeam(newTeam);
+                        if (kvp.Key == null
+                            || !kvp.Key.IsValid)
+                        {
+                            return;
+                        }
+                        CsTeam newTeam = kvp.Key.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                        kvp.Key.SwitchTeam(newTeam);
                     });
                 }
                 // show menu
@@ -343,13 +352,11 @@ namespace MiniAdmin
             else
             {
                 List<CCSPlayerController> players = [];
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV
-                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    players.Add(entry);
+                    players.Add(kvp.Key);
                 }
 
                 if (players.Count == 0)
@@ -364,13 +371,21 @@ namespace MiniAdmin
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
                     {
-                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
                         {
+                            if (entry == null
+                                || !entry.IsValid)
+                            {
+                                return;
+                            }
                             CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
                             entry.SwitchTeam(newTeam);
                         });
@@ -388,35 +403,27 @@ namespace MiniAdmin
         {
             // close menu
             MenuManager.CloseActiveMenu(player);
-            // get team if any
-            string? teamName = command.GetArg(2);
-            // team to CsTeam value if found, default to null
-            CsTeam newTeam = teamName?.ToLowerInvariant() switch
-            {
-                string s when s.Contains("ter") || s == "t" => CsTeam.Terrorist,
-                string s when s.Contains("count") || s == "ct" => CsTeam.CounterTerrorist,
-                string s when s.Contains("spec") || s == "s" => CsTeam.Spectator,
-                _ => CsTeam.None
-            };
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
             if (playerName is null or "")
             {
-                // create menu to choose player
+                // create menu to choose map
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV))
+                foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                    string name = kvp.Value["name"];
+                    string steam_id = kvp.Value["steam_id"];
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
                     {
-                        if (newTeam == CsTeam.None)
+                        if (kvp.Key == null
+                            || !kvp.Key.IsValid)
                         {
-                            newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                            return;
                         }
-                        entry.ChangeTeam(newTeam);
+                        CsTeam newTeam = kvp.Key.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                        kvp.Key.ChangeTeam(newTeam);
                     });
                 }
                 // show menu
@@ -425,13 +432,11 @@ namespace MiniAdmin
             else
             {
                 List<CCSPlayerController> players = [];
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV
-                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    players.Add(entry);
+                    players.Add(kvp.Key);
                 }
 
                 if (players.Count == 0)
@@ -441,25 +446,27 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    if (newTeam == CsTeam.None)
-                    {
-                        newTeam = players.First().Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                    }
+                    CsTeam newTeam = players.First().Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
                     players.First().ChangeTeam(newTeam);
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
                     {
-                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
                         {
-                            if (newTeam == CsTeam.None)
+                            if (entry == null
+                                || !entry.IsValid)
                             {
-                                newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                                return;
                             }
+                            CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
                             entry.ChangeTeam(newTeam);
                         });
                     }
@@ -480,17 +487,22 @@ namespace MiniAdmin
             string? playerName = command.GetArg(1);
             if (playerName is null or "")
             {
-                // create menu to choose player
+                // create menu to choose map
                 ChatMenu menu = new(Localizer["command.menu.title"]);
                 // add menu options
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV))
+                foreach (var kvp in _connectedPlayers)
                 {
-                    _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                    string name = kvp.Value["name"];
+                    string steam_id = kvp.Value["steam_id"];
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
                     {
-                        entry.Respawn();
+                        if (kvp.Key == null
+                            || !kvp.Key.IsValid)
+                        {
+                            return;
+                        }
+                        kvp.Key.Respawn();
                     });
                 }
                 // show menu
@@ -499,13 +511,11 @@ namespace MiniAdmin
             else
             {
                 List<CCSPlayerController> players = [];
-                foreach (CCSPlayerController entry in Utilities.GetPlayers()
-                    .Where(p => p.IsValid
-                        && !p.IsBot
-                        && !p.IsHLTV
-                        && p.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    players.Add(entry);
+                    players.Add(kvp.Key);
                 }
 
                 if (players.Count == 0)
@@ -519,13 +529,21 @@ namespace MiniAdmin
                 }
                 else
                 {
-                    // create menu to choose map
+                    // create menu to choose player
                     ChatMenu menu = new(Localizer["command.menu.title"]);
                     // add menu options
                     foreach (CCSPlayerController entry in players)
                     {
-                        _ = menu.AddMenuOption($"{entry.PlayerName} ({entry.NetworkIDString})", (_, _) =>
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
                         {
+                            if (entry == null
+                                || !entry.IsValid)
+                            {
+                                return;
+                            }
                             entry.Respawn();
                         });
                     }
