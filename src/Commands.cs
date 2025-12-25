@@ -507,5 +507,66 @@ namespace MiniAdmin
                 }
             }
         }
+
+        [ConsoleCommand("kill", "kills a player")]
+        [RequiresPermissions("@miniadmin/kill")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
+        public void CommandKill(CCSPlayerController player, CommandInfo command)
+        {
+            // close menu
+            MenuManager.CloseActiveMenu(player);
+            // get player name / id / whatever
+            string? playerName = command.GetArg(1);
+            if (playerName is null or "")
+            {
+                // create menu to choose map
+                ChatMenu menu = new(Localizer["command.menu.title"]);
+                // add menu options
+                foreach (var kvp in _connectedPlayers)
+                {
+                    string name = kvp.Value["name"];
+                    string steam_id = kvp.Value["steam_id"];
+                    double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = KillPlayer(kvp.Key); });
+                }
+                // show menu
+                MenuManager.OpenChatMenu(player, menu);
+            }
+            else
+            {
+                List<CCSPlayerController> players = [];
+                foreach (var kvp in _connectedPlayers
+                    .Where(kvp => kvp.Key.PlayerName.Contains(playerName, StringComparison.CurrentCultureIgnoreCase)
+                        || kvp.Value["name"].Contains(playerName, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    players.Add(kvp.Key);
+                }
+
+                if (players.Count == 0)
+                {
+                    command.ReplyToCommand(Localizer["command.playernotfound"].Value
+                        .Replace("{player}", playerName));
+                }
+                else if (players.Count == 1)
+                {
+                    _ = KillPlayer(players.First());
+                }
+                else
+                {
+                    // create menu to choose player
+                    ChatMenu menu = new(Localizer["command.menu.title"]);
+                    // add menu options
+                    foreach (CCSPlayerController entry in players)
+                    {
+                        string name = _connectedPlayers[entry]["name"];
+                        string steam_id = _connectedPlayers[entry]["steam_id"];
+                        double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = KillPlayer(entry); });
+                    }
+                    // show menu
+                    MenuManager.OpenChatMenu(player, menu);
+                }
+            }
+        }
     }
 }

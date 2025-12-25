@@ -84,6 +84,13 @@ Forcibly switches the team of the player, the player will remain alive and keep 
 
 Respawns a given player.
 
+### !kill <player>
+
+**Permission: @miniadmin/kill**
+
+Kills a given player.
+
+
 ## Compile Yourself
 
 Clone the project:

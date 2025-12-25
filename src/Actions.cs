@@ -151,6 +151,17 @@ namespace MiniAdmin
             return true;
         }
 
+        private bool KillPlayer(CCSPlayerController player)
+        {
+            if (player == null
+                || !player.IsValid)
+            {
+                return false;
+            }
+            player.CommitSuicide(false, true);
+            return true;
+        }
+
         private bool RestartMatch(int delay = 3)
         {
             // restart match
