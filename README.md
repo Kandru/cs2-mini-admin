@@ -90,6 +90,12 @@ Respawns a given player.
 
 Kills a given player.
 
+### !give <player> <item>
+
+**Permission: @miniadmin/give**
+
+Gives an item to a player.
+
 
 ## Compile Yourself
 

@@ -162,6 +162,19 @@ namespace MiniAdmin
             return true;
         }
 
+        private bool GivePlayer(CCSPlayerController player, string? item)
+        {
+            if (player == null
+                || !player.IsValid
+                || item == null
+                || item == "")
+            {
+                return false;
+            }
+            player.GiveNamedItem(item.ToLower());
+            return true;
+        }
+
         private bool RestartMatch(int delay = 3)
         {
             // restart match
