@@ -72,7 +72,7 @@ Restarts the match by optionally providing a delay (default = 3 seconds).
 
 Switches the team of the player, has the same effect as the "jointeam" console command. This follows gamemode rules, so this will usually cause a player suicide/loss of weapons.
 
-### !fswitch <player> <t/ct/s>
+### !fswitch <player>
 
 **Permission: @miniadmin/switch**
 
