@@ -10,6 +10,11 @@
     "command.mute": "[MiniAdmin] {green}{player} {default}wurde stummgeschaltet",
     "command.muted": "[MiniAdmin] {green}{player} {default}ist serverweit stummgeschaltet",
     "command.unmute": "[MiniAdmin] {green}{player} {default}ist nicht mehr stummgeschaltet",
+    "command.fswitch": "[MiniAdmin] {green}{player} {default}ist nun im gegnerischen Team",
+    "command.switch": "[MiniAdmin] {green}{player} {default}wurde ins Team {green}{team} {default}verschoben",
+    "command.respawn": "[MiniAdmin] {green}{player} {default}lebt wieder",
+    "command.kill": "[MiniAdmin] {green}{player} {default}lebt nicht mehr",
+    "command.give": "[MiniAdmin] {green}{player} {default}bekommt {green}{item}",
     "command.restart": "[MiniAdmin] Karte wird neu gestartet",
     "detection.namechange": "[MiniAdmin] {green}{player} {default} hat den Namen zu häufig geändert. Aktion: {green}{action}{default}."
 }

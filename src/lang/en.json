@@ -10,6 +10,11 @@
     "command.mute": "[MiniAdmin] {green}{player} {default}has been muted",
     "command.muted": "[MiniAdmin] {green}{player} {default}is muted serverwide",
     "command.unmute": "[MiniAdmin] {green}{player} {default}has been unmuted",
+    "command.fswitch": "[MiniAdmin] {green}{player} {default}was forced to switch the enemy team",
+    "command.switch": "[MiniAdmin] {green}{player} {default}switched to team {green}{team}",
+    "command.respawn": "[MiniAdmin] {green}{player} {default}respawned",
+    "command.kill": "[MiniAdmin] {green}{player} {default}got killed",
+    "command.give": "[MiniAdmin] {green}{item} {default}given to player {green}{player}",
     "command.restart": "[MiniAdmin] Map is restarting",
     "detection.namechange": "[MiniAdmin] {green}{player} {default} changed their name to often. Action: {green}{action}{default}."
 }

@@ -16,6 +16,7 @@ namespace MiniAdmin
             }
             // kick player
             player.Disconnect(0);
+            // announce to all
             Server.PrintToChatAll(Localizer["command.kick"].Value
                 .Replace("{player}", player.PlayerName));
             return true;
@@ -40,6 +41,7 @@ namespace MiniAdmin
                 // write to config
                 Config.Update();
             }
+            // announce to all
             Server.PrintToChatAll(Localizer["command.ban"].Value
                 .Replace("{player}", player.PlayerName)
                 .Replace("{reason}", reason));
@@ -58,6 +60,7 @@ namespace MiniAdmin
             _ = Config.BannedPlayers.Remove(SteamID);
             // write to config
             Config.Update();
+            // announce to all
             Server.PrintToChatAll(Localizer["command.unban"].Value
             .Replace("{player}", playerName));
             return true;
@@ -82,6 +85,7 @@ namespace MiniAdmin
                 // write to config
                 Config.Update();
             }
+            // announce to all
             Server.PrintToChatAll(Localizer["command.mute"].Value
                 .Replace("{player}", player.PlayerName));
             return true;
@@ -107,6 +111,7 @@ namespace MiniAdmin
                 // unmute player
                 player.VoiceFlags = VoiceFlags.Normal;
             }
+            // announce to all
             Server.PrintToChatAll(Localizer["command.unmute"].Value
             .Replace("{player}", playerName));
             return true;
@@ -121,6 +126,9 @@ namespace MiniAdmin
             }
             CsTeam newTeam = player.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
             player.SwitchTeam(newTeam);
+            // announce to all
+            Server.PrintToChatAll(Localizer["command.fswitch"].Value
+                .Replace("{player}", player.PlayerName));
             return true;
         }
 
@@ -137,6 +145,10 @@ namespace MiniAdmin
             }
 
             player.ChangeTeam(team);
+            // announce to all
+            Server.PrintToChatAll(Localizer["command.switch"].Value
+                .Replace("{player}", player.PlayerName)
+                .Replace("{team}", team.ToString()));
             return true;
         }
 
@@ -148,6 +160,9 @@ namespace MiniAdmin
                 return false;
             }
             player.Respawn();
+            // announce to all
+            Server.PrintToChatAll(Localizer["command.respawn"].Value
+                .Replace("{player}", player.PlayerName));
             return true;
         }
 
@@ -159,6 +174,9 @@ namespace MiniAdmin
                 return false;
             }
             player.CommitSuicide(false, true);
+            // announce to all
+            Server.PrintToChatAll(Localizer["command.kill"].Value
+                .Replace("{player}", player.PlayerName));
             return true;
         }
 
@@ -172,6 +190,10 @@ namespace MiniAdmin
                 return false;
             }
             player.GiveNamedItem(item.ToLower());
+            // announce to all
+            Server.PrintToChatAll(Localizer["command.give"].Value
+                .Replace("{player}", player.PlayerName)
+                .Replace("{item}", item));
             return true;
         }
 
@@ -179,6 +201,7 @@ namespace MiniAdmin
         {
             // restart match
             Server.ExecuteCommand($"mp_restartgame {delay}");
+            // announce to all
             Server.PrintToChatAll(Localizer["command.restart"]);
             return true;
         }
