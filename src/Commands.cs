@@ -318,7 +318,7 @@ namespace MiniAdmin
 
         [ConsoleCommand("fswitch", "forcefully switches the teams")]
         [RequiresPermissions("@miniadmin/switch")]
-        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player> <team>")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
         public void CommandForceSwitch(CCSPlayerController player, CommandInfo command)
         {
             // close menu
@@ -335,16 +335,7 @@ namespace MiniAdmin
                     string name = kvp.Value["name"];
                     string steam_id = kvp.Value["steam_id"];
                     double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
-                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
-                    {
-                        if (kvp.Key == null
-                            || !kvp.Key.IsValid)
-                        {
-                            return;
-                        }
-                        CsTeam newTeam = kvp.Key.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                        kvp.Key.SwitchTeam(newTeam);
-                    });
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = ForceSwitchPlayer(kvp.Key); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -366,8 +357,7 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    CsTeam newTeam = players.First().Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                    players.First().SwitchTeam(newTeam);
+                    _ = ForceSwitchPlayer(players.First());
                 }
                 else
                 {
@@ -379,16 +369,7 @@ namespace MiniAdmin
                         string name = _connectedPlayers[entry]["name"];
                         string steam_id = _connectedPlayers[entry]["steam_id"];
                         double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
-                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
-                        {
-                            if (entry == null
-                                || !entry.IsValid)
-                            {
-                                return;
-                            }
-                            CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                            entry.SwitchTeam(newTeam);
-                        });
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = ForceSwitchPlayer(entry); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
@@ -405,6 +386,15 @@ namespace MiniAdmin
             MenuManager.CloseActiveMenu(player);
             // get player name / id / whatever
             string? playerName = command.GetArg(1);
+            // get team name
+            string? teamName = command.GetArg(2);
+            CsTeam newTeam = teamName?.ToLowerInvariant() switch
+            {
+                string s when s.Contains("ter") || s == "t" => CsTeam.Terrorist,
+                string s when s.Contains("count") || s == "ct" => CsTeam.CounterTerrorist,
+                string s when s.Contains("spec") || s == "s" => CsTeam.Spectator,
+                _ => CsTeam.None
+            };
             if (playerName is null or "")
             {
                 // create menu to choose map
@@ -415,16 +405,7 @@ namespace MiniAdmin
                     string name = kvp.Value["name"];
                     string steam_id = kvp.Value["steam_id"];
                     double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
-                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
-                    {
-                        if (kvp.Key == null
-                            || !kvp.Key.IsValid)
-                        {
-                            return;
-                        }
-                        CsTeam newTeam = kvp.Key.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                        kvp.Key.ChangeTeam(newTeam);
-                    });
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = SwitchPlayer(kvp.Key, newTeam); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -446,8 +427,7 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    CsTeam newTeam = players.First().Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                    players.First().ChangeTeam(newTeam);
+                    _ = SwitchPlayer(players.First(), newTeam);
                 }
                 else
                 {
@@ -459,16 +439,7 @@ namespace MiniAdmin
                         string name = _connectedPlayers[entry]["name"];
                         string steam_id = _connectedPlayers[entry]["steam_id"];
                         double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
-                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
-                        {
-                            if (entry == null
-                                || !entry.IsValid)
-                            {
-                                return;
-                            }
-                            CsTeam newTeam = entry.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
-                            entry.ChangeTeam(newTeam);
-                        });
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = SwitchPlayer(entry, newTeam); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);
@@ -495,15 +466,7 @@ namespace MiniAdmin
                     string name = kvp.Value["name"];
                     string steam_id = kvp.Value["steam_id"];
                     double time_online = Math.Round((Server.CurrentTime - float.Parse(kvp.Value["timestamp"]) / 60), 2);
-                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
-                    {
-                        if (kvp.Key == null
-                            || !kvp.Key.IsValid)
-                        {
-                            return;
-                        }
-                        kvp.Key.Respawn();
-                    });
+                    _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = RespawnPlayer(kvp.Key); });
                 }
                 // show menu
                 MenuManager.OpenChatMenu(player, menu);
@@ -525,7 +488,7 @@ namespace MiniAdmin
                 }
                 else if (players.Count == 1)
                 {
-                    players.First().Respawn();
+                    _ = RespawnPlayer(players.First());
                 }
                 else
                 {
@@ -537,15 +500,7 @@ namespace MiniAdmin
                         string name = _connectedPlayers[entry]["name"];
                         string steam_id = _connectedPlayers[entry]["steam_id"];
                         double time_online = Math.Round((Server.CurrentTime - float.Parse(_connectedPlayers[entry]["timestamp"]) / 60), 2);
-                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) =>
-                        {
-                            if (entry == null
-                                || !entry.IsValid)
-                            {
-                                return;
-                            }
-                            entry.Respawn();
-                        });
+                        _ = menu.AddMenuOption($"{name} ({steam_id}, {time_online} min online)", (_, _) => { _ = RespawnPlayer(entry); });
                     }
                     // show menu
                     MenuManager.OpenChatMenu(player, menu);

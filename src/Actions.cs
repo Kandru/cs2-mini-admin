@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Extensions;
+using CounterStrikeSharp.API.Modules.Utils;
 
 namespace MiniAdmin
 {
@@ -108,6 +109,45 @@ namespace MiniAdmin
             }
             Server.PrintToChatAll(Localizer["command.unmute"].Value
             .Replace("{player}", playerName));
+            return true;
+        }
+
+        private bool ForceSwitchPlayer(CCSPlayerController player)
+        {
+            if (player == null
+                || !player.IsValid)
+            {
+                return false;
+            }
+            CsTeam newTeam = player.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+            player.SwitchTeam(newTeam);
+            return true;
+        }
+
+        private bool SwitchPlayer(CCSPlayerController player, CsTeam team = CsTeam.None)
+        {
+            if (player == null
+                || !player.IsValid)
+            {
+                return false;
+            }
+            if (team == CsTeam.None)
+            {
+                team = player.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+            }
+
+            player.ChangeTeam(team);
+            return true;
+        }
+
+        private bool RespawnPlayer(CCSPlayerController player)
+        {
+            if (player == null
+                || !player.IsValid)
+            {
+                return false;
+            }
+            player.Respawn();
             return true;
         }
 
