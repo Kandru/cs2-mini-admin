@@ -132,7 +132,7 @@ def check_css(css: str) -> None:
 def main() -> None:
     gen = load_generator()
     for path, text in gen.render().items():
-        if not path.is_file() or path.read_text(encoding="utf-8") != text:
+        if not path.is_file() or path.read_text(encoding="utf-8").replace("\r\n", "\n") != text:
             fail(f"{path.name}: out of date - run tools/gen_admin_panorama.py")
 
     text = LAYOUT.read_text(encoding="utf-8")

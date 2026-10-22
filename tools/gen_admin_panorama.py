@@ -467,7 +467,8 @@ def main() -> None:
     check = "--check" in sys.argv[1:]
     stale = []
     for path, text in render().items():
-        if path.is_file() and path.read_text(encoding="utf-8") == text:
+        # a Windows checkout with core.autocrlf turns the file into CRLF: compare without line endings
+        if path.is_file() and path.read_text(encoding="utf-8").replace("\r\n", "\n") == text:
             continue
         if check:
             stale.append(path.name)
