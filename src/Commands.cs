@@ -10,6 +10,8 @@ namespace MiniAdmin
 {
     public partial class MiniAdmin
     {
+        // css_<name> makes the chat trigger (!kick) work; the plain name stays for existing console use
+        [ConsoleCommand("css_kick", "kick a player")]
         [ConsoleCommand("kick", "kick a player")]
         [RequiresPermissions("@miniadmin/kick")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "<player>")]
@@ -71,6 +73,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_ban", "ban a player")]
         [ConsoleCommand("ban", "ban a player")]
         [RequiresPermissions("@miniadmin/ban")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "<player>")]
@@ -132,6 +135,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_unban", "unban a player")]
         [ConsoleCommand("unban", "unban a player")]
         [RequiresPermissions("@miniadmin/ban")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY, minArgs: 0, usage: "<player>")]
@@ -187,6 +191,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_mute", "mutes a player")]
         [ConsoleCommand("mute", "mutes a player")]
         [RequiresPermissions("@miniadmin/mute")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
@@ -248,6 +253,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_unmute", "unmutes a player")]
         [ConsoleCommand("unmute", "unmutes a player")]
         [RequiresPermissions("@miniadmin/mute")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
@@ -303,6 +309,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_restart", "restarts the match")]
         [ConsoleCommand("restart", "restarts the match")]
         [RequiresPermissions("@miniadmin/restart")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<delay>")]
@@ -316,6 +323,7 @@ namespace MiniAdmin
             _ = RestartMatch(delay, player);
         }
 
+        [ConsoleCommand("css_fswitch", "forcefully switches the teams")]
         [ConsoleCommand("fswitch", "forcefully switches the teams")]
         [RequiresPermissions("@miniadmin/switch")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
@@ -377,6 +385,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_switch", "switches the teams")]
         [ConsoleCommand("switch", "switches the teams")]
         [RequiresPermissions("@miniadmin/switch")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player> <team>")]
@@ -447,6 +456,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_respawn", "respawns a player")]
         [ConsoleCommand("respawn", "respawns a player")]
         [RequiresPermissions("@miniadmin/respawn")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
@@ -508,6 +518,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_kill", "kills a player")]
         [ConsoleCommand("kill", "kills a player")]
         [RequiresPermissions("@miniadmin/kill")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 0, usage: "<player>")]
@@ -569,6 +580,7 @@ namespace MiniAdmin
             }
         }
 
+        [ConsoleCommand("css_give", "gives a player an item")]
         [ConsoleCommand("give", "gives a player an item")]
         [RequiresPermissions("@miniadmin/give")]
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 2, usage: "<player> <item>")]
