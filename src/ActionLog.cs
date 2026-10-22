@@ -17,6 +17,8 @@ namespace MiniAdmin
     {
         private const int ActionLogSize = 200;
         private const string ActionLogFileName = "MiniAdmin-actions.log";
+        private const long ActionLogMaxBytes = 5 * 1024 * 1024;
+        private const int ActionLogTailBytes = 256 * 1024;
 
         // destructive actions: red in the log tab and in Discord
         private static readonly HashSet<string> DangerActions = new(StringComparer.Ordinal)
@@ -44,8 +46,18 @@ namespace MiniAdmin
                 {
                     return;
                 }
-                string[] lines = File.ReadAllLines(ActionLogPath);
-                for (int i = Math.Max(0, lines.Length - ActionLogSize); i < lines.Length; i++)
+                // only the end of the file: the menu keeps the last ActionLogSize entries anyway
+                using FileStream stream = new(ActionLogPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                long start = Math.Max(0, stream.Length - ActionLogTailBytes);
+                _ = stream.Seek(start, SeekOrigin.Begin);
+                using StreamReader reader = new(stream);
+                List<string> lines = [.. reader.ReadToEnd().Split('\n', StringSplitOptions.RemoveEmptyEntries)];
+                if (start > 0 && lines.Count > 0)
+                {
+                    // the first line was cut by the seek
+                    lines.RemoveAt(0);
+                }
+                for (int i = Math.Max(0, lines.Count - ActionLogSize); i < lines.Count; i++)
                 {
                     string[] f = lines[i].Split('\t');
                     if (f.Length >= 7 && DateTime.TryParse(f[0], out DateTime time))
@@ -88,6 +100,12 @@ namespace MiniAdmin
                 {
                     string path = ActionLogPath;
                     _ = Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                    // rotate: the current file becomes .1 (the previous .1 is dropped)
+                    FileInfo file = new(path);
+                    if (file.Exists && file.Length > ActionLogMaxBytes)
+                    {
+                        File.Move(path, path + ".1", overwrite: true);
+                    }
                     File.AppendAllText(path, string.Join('\t',
                         entry.Time.ToString("yyyy-MM-dd HH:mm:ss"), Clean(entry.Admin), entry.AdminId, entry.Action,
                         Clean(entry.Target), entry.TargetId, Clean(entry.Detail)) + "\n");
@@ -127,6 +145,8 @@ namespace MiniAdmin
             var payload = new
             {
                 username = "MiniAdmin",
+                // player names are untrusted: no @everyone / role / user pings, whatever they contain
+                allowed_mentions = new { parse = Array.Empty<string>() },
                 embeds = new[]
                 {
                     new
@@ -136,7 +156,7 @@ namespace MiniAdmin
                         color = DangerActions.Contains(entry.Action) ? 0xe05a5a : 0xf0a531,
                         fields = new[]
                         {
-                            new { name = "Server", value = ConVar.Find("hostname")?.StringValue ?? "-", inline = true },
+                            new { name = "Server", value = FindCvar("hostname")?.StringValue ?? "-", inline = true },
                             new { name = "Map", value = Server.MapName, inline = true }
                         },
                         timestamp = DateTime.UtcNow.ToString("o")

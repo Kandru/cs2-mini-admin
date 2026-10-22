@@ -1,5 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities;
+using CounterStrikeSharp.API.ValveConstants.Protobuf;
 
 namespace MiniAdmin
 {
@@ -19,6 +21,7 @@ namespace MiniAdmin
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
             RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
+            RegisterListener<Listeners.OnClientAuthorized>(OnClientAuthorized);
             LoadActionLog();
             LoadChat();
             LoadAdminMenu(hotReload);
@@ -46,8 +49,45 @@ namespace MiniAdmin
             DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             DeregisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
+            RemoveListener<Listeners.OnClientAuthorized>(OnClientAuthorized);
             UnloadChat();
             UnloadAdminMenu();
+            FlushConfig();
+        }
+
+        // ban check with the SteamID Steam has confirmed, before the player is in the game
+        private void OnClientAuthorized(int playerSlot, SteamID steamId)
+        {
+            ulong id = steamId.SteamId64;
+            if (!IsBanActive(id))
+            {
+                return;
+            }
+            Server.NextFrame(() =>
+            {
+                if (Utilities.GetPlayerFromSlot(playerSlot) is { IsValid: true } player && player.SteamID == id)
+                {
+                    KickBanned(player);
+                }
+            });
+        }
+
+        // one announcement per banned player and minute: a reconnect loop must not flood the chat
+        private readonly Dictionary<ulong, long> _banAnnounced = [];
+
+        private void KickBanned(CCSPlayerController player)
+        {
+            string name = player.PlayerName;
+            ulong id = player.SteamID;
+            player.Disconnect(NetworkDisconnectionReason.NETWORK_DISCONNECT_KICKBANADDED);
+            long now = Environment.TickCount64;
+            if (_banAnnounced.TryGetValue(id, out long last) && now - last < 60_000)
+            {
+                return;
+            }
+            _banAnnounced[id] = now;
+            Server.PrintToChatAll(Localizer["command.banned"].Value
+                .Replace("{player}", name));
         }
 
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
@@ -69,12 +109,11 @@ namespace MiniAdmin
             _connectedPlayers[player]["name"] = player.PlayerName;
             _connectedPlayers[player]["steam_id"] = player.SteamID.ToString();
             _connectedPlayers[player]["timestamp"] = Server.CurrentTime.ToString();
-            // kick player
+            // kick player (fallback for servers where OnClientAuthorized does not fire)
             if (IsBanActive(player.SteamID))
             {
-                player.Disconnect(0);
-                Server.PrintToChatAll(Localizer["command.banned"].Value
-                    .Replace("{player}", player.PlayerName));
+                KickBanned(player);
+                return HookResult.Continue;
             }
             // mute player
             if (Config.MutedPlayers.ContainsKey(player.SteamID))
@@ -94,6 +133,7 @@ namespace MiniAdmin
             {
                 return HookResult.Continue;
             }
+            _ = _detectionNameChange.Remove(player);
             // remove player from dictionary
             if (_connectedPlayers.ContainsKey(player))
             {
@@ -107,6 +147,8 @@ namespace MiniAdmin
             // reset dictionaries
             _connectedPlayers.Clear();
             _detectionNameChange.Clear();
+            _banAnnounced.Clear();
+            FlushConfig();
         }
     }
 }

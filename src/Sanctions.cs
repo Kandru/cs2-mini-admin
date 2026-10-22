@@ -33,7 +33,7 @@ namespace MiniAdmin
             if (until > 0 && until <= UnixNow())
             {
                 _ = Config.BannedPlayers.Remove(steamId);
-                Config.Update();
+                SaveConfig();
                 return false;
             }
             return true;
@@ -53,7 +53,7 @@ namespace MiniAdmin
             {
                 _ = Config.BannedPlayers.Remove(steamId);
             }
-            Config.Update();
+            SaveConfig();
         }
 
         /// <summary>Bans a SteamID64, online or not. An online player is kicked as well.</summary>
@@ -74,7 +74,7 @@ namespace MiniAdmin
                 return false;
             }
             Config.BannedPlayers.Add(steamId, NewBanEntry(steamId.ToString(), reason, admin, minutes));
-            Config.Update();
+            SaveConfig();
             LogAction(admin, "ban", steamId.ToString(), steamId.ToString(), reason + ", " + DurationText(minutes));
             // announce to all
             Server.PrintToChatAll(Localizer["command.banid"].Value
@@ -100,7 +100,7 @@ namespace MiniAdmin
                 { "date", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm") },
                 { "admin", admin?.PlayerName ?? "Console" }
             });
-            Config.Update();
+            SaveConfig();
             LogAction(admin, "gag", player);
             // announce to all
             Server.PrintToChatAll(Localizer["command.gag"].Value
@@ -116,7 +116,7 @@ namespace MiniAdmin
             }
             string playerName = data.TryGetValue("name", out string? name) ? name : steamId.ToString();
             _ = Config.GaggedPlayers.Remove(steamId);
-            Config.Update();
+            SaveConfig();
             LogAction(admin, "ungag", playerName, steamId.ToString());
             // announce to all
             Server.PrintToChatAll(Localizer["command.ungag"].Value

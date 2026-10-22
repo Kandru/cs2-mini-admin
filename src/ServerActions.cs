@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
@@ -14,6 +15,8 @@ namespace MiniAdmin
         // server cvars behind the rule switches, order = ServerSwitch (respawn sets both teams)
         private static readonly string[] SwitchCvars = ["mp_warmup_pausetimer", "mp_friendlyfire", "sv_alltalk", "sv_deadtalk", "mp_buy_anywhere", "mp_respawn_on_death_t"];
         private const string RespawnCtCvar = "mp_respawn_on_death_ct";
+        // one extension adds at most an hour
+        private const int MaxWarmupExtendSeconds = 3600;
 
         // server steppers, order = ServerSetting: cvar, step, min, max
         private static readonly (string Cvar, float Step, float Min, float Max)[] SettingSteps =
@@ -32,12 +35,31 @@ namespace MiniAdmin
         // the admin switched the warmup timer off: an ending extension must not resume it
         private bool _warmupHold;
 
+        // FindAllEntitiesByDesignerName walks every entity: look the few singletons up once per map
+        private static CCSGameRulesProxy? _rulesProxy;
+        private static readonly CCSTeam?[] _teams = new CCSTeam?[4];
+        // ConVar handles stay valid for the whole server lifetime
+        private static readonly Dictionary<string, ConVar> _cvars = new(StringComparer.Ordinal);
+
+        /// <summary>Map start: the entities went with the old map.</summary>
+        private static void ResetEntityCache()
+        {
+            _rulesProxy = null;
+            Array.Clear(_teams);
+        }
+
         private static CCSGameRules? GetGameRules()
         {
+            if (_rulesProxy is { IsValid: true, GameRules: { } cached })
+            {
+                return cached;
+            }
+            _rulesProxy = null;
             foreach (CCSGameRulesProxy proxy in Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules"))
             {
                 if (proxy.IsValid && proxy.GameRules != null)
                 {
+                    _rulesProxy = proxy;
                     return proxy.GameRules;
                 }
             }
@@ -46,19 +68,41 @@ namespace MiniAdmin
 
         private static int GetTeamScore(CsTeam team)
         {
-            foreach (CCSTeam entry in Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager"))
+            int index = (int)team;
+            if ((uint)index >= _teams.Length)
             {
-                if (entry.IsValid && entry.TeamNum == (int)team)
+                return 0;
+            }
+            if (_teams[index] is not { IsValid: true })
+            {
+                foreach (CCSTeam entry in Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager"))
                 {
-                    return entry.Score;
+                    if (entry.IsValid && (uint)entry.TeamNum < _teams.Length)
+                    {
+                        _teams[entry.TeamNum] = entry;
+                    }
                 }
             }
-            return 0;
+            return _teams[index] is { IsValid: true } found ? found.Score : 0;
+        }
+
+        private static ConVar? FindCvar(string name)
+        {
+            if (_cvars.TryGetValue(name, out ConVar? cached))
+            {
+                return cached;
+            }
+            ConVar? cvar = ConVar.Find(name);
+            if (cvar != null)
+            {
+                _cvars[name] = cvar;
+            }
+            return cvar;
         }
 
         private static float CvarNumber(string name, float fallback = 0)
         {
-            ConVar? cvar = ConVar.Find(name);
+            ConVar? cvar = FindCvar(name);
             if (cvar == null)
             {
                 return fallback;
@@ -169,6 +213,7 @@ namespace MiniAdmin
             {
                 return false;
             }
+            seconds = Math.Min(seconds, MaxWarmupExtendSeconds);
             float now = Server.CurrentTime;
             _warmupExtendUntil = Math.Max(_warmupExtendUntil, now) + seconds;
             ExecuteAndRefresh("mp_warmup_pausetimer 1");
@@ -348,10 +393,20 @@ namespace MiniAdmin
             return (map, label, workshop);
         }
 
+        /// <summary>
+        /// The map name ends up in a console command: only plain names pass, so "x;rcon_password y"
+        /// cannot smuggle a second command into changelevel.
+        /// </summary>
+        private static bool IsSafeMapName(string map, bool workshop) => workshop
+            ? map.Length is > 0 and <= 20
+            : MapNameRe.IsMatch(map) && Server.IsMapValid(map);
+
+        private static readonly Regex MapNameRe = new("^[A-Za-z0-9_-]{1,64}$", RegexOptions.Compiled);
+
         private bool ChangeMap(string entry, CCSPlayerController? admin = null)
         {
             (string map, string label, bool workshop) = ParseMapEntry(entry);
-            if (map.Length == 0)
+            if (!IsSafeMapName(map, workshop))
             {
                 return false;
             }

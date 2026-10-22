@@ -118,7 +118,11 @@ namespace MiniAdmin
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_AND_SERVER, minArgs: 1, usage: "<map|workshop id>")]
         public void CommandMap(CCSPlayerController? player, CommandInfo command)
         {
-            _ = ChangeMap(command.GetArg(1), player);
+            if (!ChangeMap(command.GetArg(1), player))
+            {
+                command.ReplyToCommand(Localizer["command.mapinvalid"].Value
+                    .Replace("{map}", command.GetArg(1)));
+            }
         }
 
         [ConsoleCommand("css_tban", "bans an online player for a number of minutes")]

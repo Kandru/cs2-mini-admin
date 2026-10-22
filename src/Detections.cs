@@ -11,32 +11,27 @@ namespace MiniAdmin
         private HookResult OnPlayerChangeName(EventPlayerChangename @event, GameEventInfo info)
         {
             CCSPlayerController? player = @event.Userid;
-            if (player == null
+            if (!Config.Detections.Enabled
+                || player == null
                 || !player.IsValid
                 || player.IsBot
                 || player.IsHLTV)
             {
                 return HookResult.Continue;
             }
-            // add player if not already
-            if (!_detectionNameChange.ContainsKey(player))
+            int now = (int)Server.CurrentTime;
+            // add player if not already; the timestamp has to exist before it is read below
+            if (!_detectionNameChange.TryGetValue(player, out Dictionary<string, int>? data))
             {
-                _detectionNameChange.Add(player, []);
+                data = new Dictionary<string, int> { { "count", 0 }, { "timestamp", now } };
+                _detectionNameChange.Add(player, data);
             }
-            // initialize counter and increase appropriately
-            if (!_detectionNameChange[player].ContainsKey("count"))
+            // reset counter after a minute without name changes, then count this one
+            if (data["timestamp"] < now - 60)
             {
-                _detectionNameChange[player]["count"] = 1;
+                data["count"] = 0;
             }
-            else
-            {
-                _detectionNameChange[player]["count"]++;
-            }
-            // reset counter after minute has passed
-            if (_detectionNameChange[player]["timestamp"] < (int)Server.CurrentTime - 60)
-            {
-                _detectionNameChange[player]["count"] = 0;
-            }
+            data["count"]++;
             // check for spamming name change events (bigger then Config.Detections.MaxNameChangesPerMinute)
             if (_detectionNameChange[player]["count"] >= Config.Detections.MaxNameChangesPerMinute)
             {

@@ -14,6 +14,10 @@ namespace MiniAdmin
             {
                 return false;
             }
+            if (!MayTarget(admin, player, allowSelf: false))
+            {
+                return false;
+            }
             LogAction(admin, "kick", player);
             // kick player
             player.Disconnect(0);
@@ -30,12 +34,16 @@ namespace MiniAdmin
             {
                 return false;
             }
+            if (!MayTarget(admin, player, allowSelf: false))
+            {
+                return false;
+            }
             // add to ban list if not already added
             if (!Config.BannedPlayers.ContainsKey(player.SteamID))
             {
                 Config.BannedPlayers.Add(player.SteamID, NewBanEntry(player.PlayerName, reason, admin, minutes));
                 // write to config
-                Config.Update();
+                SaveConfig();
                 LogAction(admin, "ban", player, reason + ", " + DurationText(minutes));
             }
             // kick player
@@ -59,7 +67,7 @@ namespace MiniAdmin
             // remove from ban list)
             _ = Config.BannedPlayers.Remove(SteamID);
             // write to config
-            Config.Update();
+            SaveConfig();
             LogAction(admin, "unban", playerName, SteamID.ToString());
             // announce to all
             Server.PrintToChatAll(Localizer["command.unban"].Value
@@ -71,6 +79,10 @@ namespace MiniAdmin
         {
             if (player == null
                 || !player.IsValid)
+            {
+                return false;
+            }
+            if (!MayTarget(admin, player, allowSelf: false))
             {
                 return false;
             }
@@ -86,7 +98,7 @@ namespace MiniAdmin
                     { "admin", admin?.PlayerName ?? "Console" }
                 });
                 // write to config
-                Config.Update();
+                SaveConfig();
                 LogAction(admin, "mute", player);
             }
             // announce to all
@@ -106,7 +118,7 @@ namespace MiniAdmin
             // remove from mute list)
             _ = Config.MutedPlayers.Remove(SteamID);
             // write to config
-            Config.Update();
+            SaveConfig();
             LogAction(admin, "unmute", playerName, SteamID.ToString());
             // check if player is online
             IEnumerable<CCSPlayerController> players = Utilities.GetPlayers().Where(p => p.IsValid && p.SteamID == SteamID);
@@ -129,6 +141,10 @@ namespace MiniAdmin
             {
                 return false;
             }
+            if (!MayTarget(admin, player, allowSelf: true))
+            {
+                return false;
+            }
             CsTeam newTeam = player.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
             player.SwitchTeam(newTeam);
             LogAction(admin, "fswitch", player, newTeam.ToString());
@@ -142,6 +158,10 @@ namespace MiniAdmin
         {
             if (player == null
                 || !player.IsValid)
+            {
+                return false;
+            }
+            if (!MayTarget(admin, player, allowSelf: true))
             {
                 return false;
             }
@@ -166,6 +186,10 @@ namespace MiniAdmin
             {
                 return false;
             }
+            if (!MayTarget(admin, player, allowSelf: true))
+            {
+                return false;
+            }
             player.Respawn();
             LogAction(admin, "respawn", player);
             // announce to all
@@ -178,6 +202,10 @@ namespace MiniAdmin
         {
             if (player == null
                 || !player.IsValid)
+            {
+                return false;
+            }
+            if (!MayTarget(admin, player, allowSelf: true))
             {
                 return false;
             }
@@ -198,6 +226,10 @@ namespace MiniAdmin
             {
                 return false;
             }
+            if (!MayTarget(admin, player, allowSelf: true))
+            {
+                return false;
+            }
             player.GiveNamedItem(item.ToLower());
             LogAction(admin, "give", player, item.ToLower());
             // announce to all
@@ -205,6 +237,53 @@ namespace MiniAdmin
                 .Replace("{player}", player.PlayerName)
                 .Replace("{item}", item));
             return true;
+        }
+
+        /// <summary>
+        /// Immunity for every action, whatever started it (chat menus, commands, admin menu).
+        /// Console and the detections (admin null) may target anyone.
+        /// </summary>
+        private bool MayTarget(CCSPlayerController? admin, CCSPlayerController target, bool allowSelf)
+        {
+            if (admin is not { IsValid: true })
+            {
+                return true;
+            }
+            if (!allowSelf && admin.Slot == target.Slot)
+            {
+                admin.PrintToChat(Localizer["command.notself"]);
+                return false;
+            }
+            if (!CanTarget(admin, target))
+            {
+                admin.PrintToChat(Localizer["command.immune"]);
+                return false;
+            }
+            return true;
+        }
+
+        // config writes are bundled: a burst of bans (or the purge of expired ones) writes the file once
+        private bool _configSavePending;
+
+        private void SaveConfig()
+        {
+            _recordsVersion++;
+            if (_configSavePending)
+            {
+                return;
+            }
+            _configSavePending = true;
+            _ = AddTimer(0.5f, FlushConfig);
+        }
+
+        private void FlushConfig()
+        {
+            if (!_configSavePending)
+            {
+                return;
+            }
+            _configSavePending = false;
+            Config.Update();
         }
 
         private bool RestartMatch(int delay = 3, CCSPlayerController? admin = null)

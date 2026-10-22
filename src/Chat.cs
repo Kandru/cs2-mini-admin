@@ -51,12 +51,26 @@ namespace MiniAdmin
             return HookResult.Continue;
         }
 
+        // players without a permission may write to the admins once per cooldown (gagged ones too)
+        private const long AdminChatCooldownMs = 3000;
+        private readonly long[] _adminChatLast = new long[65];
+
         /// <summary>To every admin (any MiniAdmin permission) and the sender.</summary>
         private void SendAdminChat(CCSPlayerController sender, string text)
         {
             if (text.Length == 0)
             {
                 return;
+            }
+            if ((uint)sender.Slot < _adminChatLast.Length && !HasAnyMenuPermission(sender))
+            {
+                long now = Environment.TickCount64;
+                if (now - _adminChatLast[sender.Slot] < AdminChatCooldownMs)
+                {
+                    sender.PrintToChat(Localizer["chat.cooldown"]);
+                    return;
+                }
+                _adminChatLast[sender.Slot] = now;
             }
             string line = Localizer["chat.admin"].Value
                 .Replace("{player}", sender.PlayerName)

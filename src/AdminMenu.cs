@@ -164,6 +164,7 @@ namespace MiniAdmin
             _menuNextConfirmExpiry = float.MaxValue;
             _pauseRequested = false;
             ResetWarmupState();
+            ResetEntityCache();
             PurgeExpiredBans();
             _ = AddTimer(MenuWarmUpDelaySeconds, () => _menu.Hud.EnsureEntity(), TimerFlags.STOP_ON_MAPCHANGE);
         }
@@ -232,7 +233,7 @@ namespace MiniAdmin
                 }
                 if (Utilities.GetPlayerFromSlot(slot) is { IsValid: true } player)
                 {
-                    PaintMenu(player);
+                    SafePaint(player);
                     budget--;
                 }
                 else
@@ -300,7 +301,7 @@ namespace MiniAdmin
             _menuTeamPage[slot, 1] = 0;
             _menuBanPick[slot] = false;
             _menuConfirm[slot] = null;
-            PaintMenu(player);
+            SafePaint(player);
             _menu.Hud.Show(player);
 
             // capture one timer after the first paint, so spawn/first write and capture are not in one burst
@@ -801,7 +802,7 @@ namespace MiniAdmin
 
         private void HandleSetting(CCSPlayerController admin, ServerSetting setting, int direction)
         {
-            if (!AdminManager.PlayerHasPermissions(admin, PermRules))
+            if (!Has(admin, PermRules))
             {
                 return;
             }
@@ -813,7 +814,7 @@ namespace MiniAdmin
             int slot = admin.Slot;
             string? entry = _menuMapShown[slot, index];
             if (entry == null
-                || !AdminManager.PlayerHasPermissions(admin, PermMap)
+                || !Has(admin, PermMap)
                 || IsCurrentMap(entry)
                 || NeedsConfirm(slot, id, confirmed))
             {
@@ -828,7 +829,7 @@ namespace MiniAdmin
             RecordKind kind = _menuRecordKind[slot];
             ulong steamId = _menuRecordShown[slot, index];
             if (steamId == 0
-                || !AdminManager.PlayerHasPermissions(admin, RecordPermission(kind))
+                || !Has(admin, RecordPermission(kind))
                 || NeedsConfirm(slot, id, confirmed))
             {
                 return;
@@ -880,7 +881,7 @@ namespace MiniAdmin
             _ => PermGag
         };
 
-        private static bool IsActionAllowed(CCSPlayerController admin, CCSPlayerController target, PlayerAction action)
+        private bool IsActionAllowed(CCSPlayerController admin, CCSPlayerController target, PlayerAction action)
         {
             bool self = target.Slot == admin.Slot;
             bool targetable = CanTarget(admin, target);
@@ -889,51 +890,51 @@ namespace MiniAdmin
             bool alive = IsAlive(target);
             return action switch
             {
-                PlayerAction.Kick => other && AdminManager.PlayerHasPermissions(admin, PermKick),
-                PlayerAction.Ban => other && AdminManager.PlayerHasPermissions(admin, PermBan),
-                PlayerAction.Mute => other && AdminManager.PlayerHasPermissions(admin, PermMute),
-                PlayerAction.Gag => other && AdminManager.PlayerHasPermissions(admin, PermGag),
-                PlayerAction.Rename => !self && targetable && AdminManager.PlayerHasPermissions(admin, PermRename),
-                PlayerAction.ToT => targetable && target.Team != CsTeam.Terrorist && AdminManager.PlayerHasPermissions(admin, PermSwitch),
-                PlayerAction.ToCt => targetable && target.Team != CsTeam.CounterTerrorist && AdminManager.PlayerHasPermissions(admin, PermSwitch),
-                PlayerAction.ToSpec => targetable && target.Team != CsTeam.Spectator && AdminManager.PlayerHasPermissions(admin, PermSwitch),
-                PlayerAction.ForceSwitch => targetable && IsPlaying(target) && AdminManager.PlayerHasPermissions(admin, PermSwitch),
-                PlayerAction.Respawn => IsPlaying(target) && !target.PawnIsAlive && AdminManager.PlayerHasPermissions(admin, PermRespawn),
-                PlayerAction.Kill => targetable && alive && AdminManager.PlayerHasPermissions(admin, PermKill),
+                PlayerAction.Kick => other && Has(admin, PermKick),
+                PlayerAction.Ban => other && Has(admin, PermBan),
+                PlayerAction.Mute => other && Has(admin, PermMute),
+                PlayerAction.Gag => other && Has(admin, PermGag),
+                PlayerAction.Rename => !self && targetable && Has(admin, PermRename),
+                PlayerAction.ToT => targetable && target.Team != CsTeam.Terrorist && Has(admin, PermSwitch),
+                PlayerAction.ToCt => targetable && target.Team != CsTeam.CounterTerrorist && Has(admin, PermSwitch),
+                PlayerAction.ToSpec => targetable && target.Team != CsTeam.Spectator && Has(admin, PermSwitch),
+                PlayerAction.ForceSwitch => targetable && IsPlaying(target) && Has(admin, PermSwitch),
+                PlayerAction.Respawn => IsPlaying(target) && !target.PawnIsAlive && Has(admin, PermRespawn),
+                PlayerAction.Kill => targetable && alive && Has(admin, PermKill),
                 PlayerAction.Slap or PlayerAction.Freeze or PlayerAction.Noclip or PlayerAction.God or PlayerAction.Strip =>
-                    targetable && alive && AdminManager.PlayerHasPermissions(admin, PermPlayer),
+                    targetable && alive && Has(admin, PermPlayer),
                 // teleports need two living players
                 PlayerAction.Bring or PlayerAction.Goto =>
-                    !self && targetable && alive && IsAlive(admin) && AdminManager.PlayerHasPermissions(admin, PermPlayer),
+                    !self && targetable && alive && IsAlive(admin) && Has(admin, PermPlayer),
                 _ => false
             };
         }
 
-        private static bool CanSetValues(CCSPlayerController admin, CCSPlayerController target, PlayerValue value) =>
+        private bool CanSetValues(CCSPlayerController admin, CCSPlayerController target, PlayerValue value) =>
             CanTarget(admin, target)
             && (value == PlayerValue.Money ? IsPlaying(target) : IsAlive(target))
-            && AdminManager.PlayerHasPermissions(admin, PermPlayer);
+            && Has(admin, PermPlayer);
 
-        private static bool CanGive(CCSPlayerController admin, CCSPlayerController target) =>
-            IsAlive(target) && AdminManager.PlayerHasPermissions(admin, PermGive);
+        private bool CanGive(CCSPlayerController admin, CCSPlayerController target) =>
+            IsAlive(target) && Has(admin, PermGive);
 
-        private static bool IsServerActionAllowed(CCSPlayerController admin, ServerAction action, ServerState state) => action switch
+        private bool IsServerActionAllowed(CCSPlayerController admin, ServerAction action, ServerState state) => action switch
         {
-            ServerAction.RestartRound => state.HasRules && !state.Warmup && AdminManager.PlayerHasPermissions(admin, PermRound),
-            ServerAction.RestartMatch => AdminManager.PlayerHasPermissions(admin, PermRestart),
-            ServerAction.Pause => !state.Warmup && AdminManager.PlayerHasPermissions(admin, PermRound),
-            ServerAction.TimeoutT or ServerAction.TimeoutCt => !state.Warmup && AdminManager.PlayerHasPermissions(admin, PermRound),
-            ServerAction.WarmupStart => state.HasRules && !state.Warmup && AdminManager.PlayerHasPermissions(admin, PermRound),
-            ServerAction.WarmupEnd or ServerAction.WarmupExtend => state.Warmup && AdminManager.PlayerHasPermissions(admin, PermRound),
-            ServerAction.SwapTeams or ServerAction.ScrambleTeams => AdminManager.PlayerHasPermissions(admin, PermTeams),
-            ServerAction.BotT or ServerAction.BotCt => AdminManager.PlayerHasPermissions(admin, PermBots),
-            ServerAction.BotKick => state.Bots > 0 && AdminManager.PlayerHasPermissions(admin, PermBots),
+            ServerAction.RestartRound => state.HasRules && !state.Warmup && Has(admin, PermRound),
+            ServerAction.RestartMatch => Has(admin, PermRestart),
+            ServerAction.Pause => !state.Warmup && Has(admin, PermRound),
+            ServerAction.TimeoutT or ServerAction.TimeoutCt => !state.Warmup && Has(admin, PermRound),
+            ServerAction.WarmupStart => state.HasRules && !state.Warmup && Has(admin, PermRound),
+            ServerAction.WarmupEnd or ServerAction.WarmupExtend => state.Warmup && Has(admin, PermRound),
+            ServerAction.SwapTeams or ServerAction.ScrambleTeams => Has(admin, PermTeams),
+            ServerAction.BotT or ServerAction.BotCt => Has(admin, PermBots),
+            ServerAction.BotKick => state.Bots > 0 && Has(admin, PermBots),
             _ => false
         };
 
-        private static bool IsSwitchAllowed(CCSPlayerController admin, ServerSwitch rule, ServerState state) => rule == ServerSwitch.WarmupHold
-            ? state.Warmup && AdminManager.PlayerHasPermissions(admin, PermRound)
-            : AdminManager.PlayerHasPermissions(admin, PermRules);
+        private bool IsSwitchAllowed(CCSPlayerController admin, ServerSwitch rule, ServerState state) => rule == ServerSwitch.WarmupHold
+            ? state.Warmup && Has(admin, PermRound)
+            : Has(admin, PermRules);
 
         private static bool IsCurrentMap(string entry)
         {
@@ -948,7 +949,51 @@ namespace MiniAdmin
 
         private string MenuText(CCSPlayerController player, string key) => Localizer.ForPlayer(player, key);
 
+        /// <summary>Scheduler and open: a paint that throws is logged, the next refresh tries again.</summary>
+        private void SafePaint(CCSPlayerController player)
+        {
+            try
+            {
+                PaintMenu(player);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[MiniAdmin][AdminMenu] Paint failed: {ex.Message}");
+            }
+        }
+
+        // permission answers of the admin being painted: one AdminManager lookup per permission and paint
+        private int _permSlot = -1;
+        private readonly Dictionary<string, bool> _permCache = new(StringComparer.Ordinal);
+
+        private bool Has(CCSPlayerController admin, string permission)
+        {
+            if (_permSlot != admin.Slot)
+            {
+                return AdminManager.PlayerHasPermissions(admin, permission);
+            }
+            if (!_permCache.TryGetValue(permission, out bool has))
+            {
+                _permCache[permission] = has = AdminManager.PlayerHasPermissions(admin, permission);
+            }
+            return has;
+        }
+
         private void PaintMenu(CCSPlayerController player)
+        {
+            _permSlot = player.Slot;
+            _permCache.Clear();
+            try
+            {
+                PaintMenuCore(player);
+            }
+            finally
+            {
+                _permSlot = -1;
+            }
+        }
+
+        private void PaintMenuCore(CCSPlayerController player)
         {
             int slot = player.Slot;
             _menuDirty[slot] = false;
@@ -959,7 +1004,7 @@ namespace MiniAdmin
 
             _menu.PaintFrame(player,
                 T("menu.title"),
-                ConVar.Find("hostname")?.StringValue ?? string.Empty,
+                FindCvar("hostname")?.StringValue ?? string.Empty,
                 T("menu.nav"),
                 T("menu.hint"),
                 MenuCredit,
@@ -1316,7 +1361,7 @@ namespace MiniAdmin
                 _menuSwitches[s] = new SwitchModel(T($"menu.sw.{AdminMenuIds.SwitchKeys[s]}"), T(on ? "menu.on" : "menu.off"), on, !IsSwitchAllowed(admin, rule, state));
             }
 
-            bool rulesAllowed = AdminManager.PlayerHasPermissions(admin, PermRules);
+            bool rulesAllowed = Has(admin, PermRules);
             for (int s = 0; s < _menuSettings.Length; s++)
             {
                 ServerSetting setting = (ServerSetting)s;
@@ -1338,7 +1383,7 @@ namespace MiniAdmin
             List<string> maps = Config.Menu.Maps;
             int pages = Math.Max(1, (maps.Count + AdminMenuIds.Maps - 1) / AdminMenuIds.Maps);
             int page = _menuPage[slot] = Math.Clamp(_menuPage[slot], 0, pages - 1);
-            bool allowed = AdminManager.PlayerHasPermissions(admin, PermMap);
+            bool allowed = Has(admin, PermMap);
             _menuTiles.Clear();
             for (int m = 0; m < AdminMenuIds.Maps; m++)
             {
@@ -1369,6 +1414,23 @@ namespace MiniAdmin
             _ => Config.GaggedPlayers
         };
 
+        // insertion order of each list; rebuilt only when a sanction changed (SaveConfig bumps the version)
+        private int _recordsVersion;
+        private readonly List<ulong>[] _recordKeys = [[], [], []];
+        private readonly int[] _recordKeysVersion = [-1, -1, -1];
+
+        private List<ulong> RecordKeys(RecordKind kind)
+        {
+            int k = (int)kind;
+            if (_recordKeysVersion[k] != _recordsVersion)
+            {
+                _recordKeys[k].Clear();
+                _recordKeys[k].AddRange(Records(kind).Keys);
+                _recordKeysVersion[k] = _recordsVersion;
+            }
+            return _recordKeys[k];
+        }
+
         private void PaintRecordsTab(CCSPlayerController admin, Func<string, string> T)
         {
             int slot = admin.Slot;
@@ -1378,26 +1440,22 @@ namespace MiniAdmin
                 _menuRecordKinds[k] = T($"menu.rec.{RecordKindKeys[k]}") + " " + NumberText.Of(Records((RecordKind)k).Count);
             }
             Dictionary<ulong, Dictionary<string, string>> records = Records(kind);
-            bool allowed = AdminManager.PlayerHasPermissions(admin, RecordPermission(kind));
+            bool allowed = Has(admin, RecordPermission(kind));
             int pages = Math.Max(1, (records.Count + AdminMenuIds.Records - 1) / AdminMenuIds.Records);
             int page = _menuPage[slot] = Math.Clamp(_menuPage[slot], 0, pages - 1);
             long now = UnixNow();
 
             // newest first: entries are appended to the config in the order they were made
-            int skip = page * AdminMenuIds.Records;
+            List<ulong> keys = RecordKeys(kind);
             int r = 0;
             _menuRecords.Clear();
-            foreach (KeyValuePair<ulong, Dictionary<string, string>> record in records.Reverse())
+            for (int i = keys.Count - 1 - (page * AdminMenuIds.Records); i >= 0 && r < AdminMenuIds.Records; i--)
             {
-                if (skip-- > 0)
+                if (!records.TryGetValue(keys[i], out Dictionary<string, string>? data))
                 {
                     continue;
                 }
-                if (r >= AdminMenuIds.Records)
-                {
-                    break;
-                }
-                Dictionary<string, string> data = record.Value;
+                KeyValuePair<ulong, Dictionary<string, string>> record = new(keys[i], data);
                 string name = data.TryGetValue("name", out string? stored) && stored.Length > 0 ? stored : record.Key.ToString();
                 List<string> meta = [record.Key.ToString()];
                 if (kind == RecordKind.Bans)
