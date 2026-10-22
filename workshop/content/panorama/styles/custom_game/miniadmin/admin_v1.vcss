@@ -1,0 +1,1742 @@
+/* ============================================================================
+   MiniAdmin admin menu v1 (admin_v1.xml, contract: src/Hud/AdminMenuIds.cs).
+   Modal, centred 1280x800, mouse driven ("!admin"). Look follows the Kandru
+   "tactical" menus (Challenges, Roll The Dice info): square panel, accent
+   corner brackets, "//" kicker, nav rail with active bar, index boxes.
+   Hex colours only; no @define/var/rgba/display. Unitless font-size.
+
+   Tokens: panel #0a0d11eb  raised #ffffff0d  hover #ffffff1c  press #ffffff2e
+           hairline #ffffff1f / #ffffff14  ink #f5f7fa  ink-soft #e8eef4
+           muted #a3acb6  dim #6b737c  accent #f0a531  info #5aa9e6
+           success #9ccf4f  warn #ff8a3d  danger #e05a5a  t #eabe54  ct #96c8fa
+   Root ma-root carries: is-off / is-fading, view-players|server|maps|bans|mutes.
+   ma-detail: is-empty, is-ban, team-t|ct|spec.  ma-st-phase: phase-*.
+   Player rows: is-off, is-active, is-dead, is-muted.  Buttons: is-disabled,
+   is-confirm (label swaps to "SURE?"), is-active, is-on (switches).
+   Spacing on a 4px grid; horizontal insets are MaPad spacers (width:100%
+   children ignore padding). Motion: hover 0.15s, card 0.25s in / 0.18s out.
+   ============================================================================ */
+
+/* Screen + card ---------------------------------------------------------------- */
+
+.MaScreen
+{
+	width: 100%;
+	height: 100%;
+	z-index: 99999;
+}
+
+.MaCard
+{
+	width: 1280px;
+	height: 800px;
+	horizontal-align: center;
+	vertical-align: middle;
+	flow-children: none;
+	opacity: 1;
+	transform: translateY( 0px );
+	transition-property: opacity, transform;
+	transition-duration: 0.25s;
+	transition-timing-function: ease-out;
+}
+
+.MaCard.is-fading
+{
+	opacity: 0;
+	transform: translateY( 8px );
+	transition-duration: 0.18s;
+	transition-timing-function: ease-in;
+}
+
+.MaCard.is-off
+{
+	visibility: collapse;
+	opacity: 0;
+	transition-duration: 0s;
+}
+
+.MaBg
+{
+	width: 100%;
+	height: 100%;
+	background-color: #0a0d11eb;
+	border: 1px solid #ffffff1f;
+	box-shadow: #000000b0 0px 10px 32px 0px;
+	world-blur: gaussian( 2 );
+}
+
+.MaCorner
+{
+	width: 12px;
+	height: 12px;
+	border-top: 2px solid #f0a531;
+	border-left: 2px solid #f0a531;
+	z-index: 6;
+}
+
+.MaCornerTL { horizontal-align: left; vertical-align: top; }
+.MaCornerTR { horizontal-align: right; vertical-align: top; transform: rotateZ( 90deg ); }
+.MaCornerBR { horizontal-align: right; vertical-align: bottom; transform: rotateZ( 180deg ); }
+.MaCornerBL { horizontal-align: left; vertical-align: bottom; transform: rotateZ( 270deg ); }
+
+.MaContent
+{
+	width: 100%;
+	height: 100%;
+	flow-children: down;
+	z-index: 2;
+}
+
+.MaPad
+{
+	width: 16px;
+	height: 100%;
+}
+
+.MaVPad
+{
+	width: 100%;
+	height: 16px;
+}
+
+/* Head ------------------------------------------------------------------------- */
+
+.MaHead
+{
+	width: 100%;
+	height: 60px;
+	flow-children: right;
+	padding-left: 20px;
+	padding-right: 16px;
+	border-bottom: 1px solid #ffffff14;
+}
+
+Label.MaKicker
+{
+	vertical-align: middle;
+	margin-right: 12px;
+	font-size: 20;
+	letter-spacing: 1px;
+	color: #f0a531;
+}
+
+Label.MaTitle
+{
+	vertical-align: middle;
+	font-size: 24;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	color: #f5f7fa;
+}
+
+Label.MaSub
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	margin-left: 16px;
+	font-size: 18;
+	letter-spacing: 1px;
+	color: #a3acb6;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaClose
+{
+	width: 38px;
+	height: 38px;
+	flow-children: none;
+	vertical-align: middle;
+	margin-left: 16px;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff33;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaClose:hover
+{
+	background-color: #e05a5a44;
+	border: 1px solid #e05a5a;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaClose:active
+{
+	background-color: #e05a5a88;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaCloseX
+{
+	width: 16px;
+	height: 2px;
+	horizontal-align: center;
+	vertical-align: middle;
+	background-color: #f5f7fa;
+}
+
+.MaCloseA { transform: rotateZ( 45deg ); }
+.MaCloseB { transform: rotateZ( -45deg ); }
+
+/* Status strip ------------------------------------------------------------------ */
+
+.MaStatus
+{
+	width: 100%;
+	height: 56px;
+	flow-children: right;
+	padding-left: 20px;
+	padding-right: 20px;
+	background-color: #ffffff05;
+	border-bottom: 1px solid #ffffff14;
+}
+
+.MaStat
+{
+	width: fit-children;
+	height: fit-children;
+	vertical-align: middle;
+	flow-children: down;
+	margin-right: 40px;
+}
+
+Label.MaStatH
+{
+	font-size: 14;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	color: #a3acb6;
+}
+
+Label.MaStatV
+{
+	font-size: 18;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #f5f7fa;
+}
+
+.MaScore
+{
+	width: fit-children;
+	height: fit-children;
+	flow-children: right;
+}
+
+Label.MaScoreTeam
+{
+	vertical-align: middle;
+	font-size: 16;
+	letter-spacing: 1px;
+}
+
+Label.MaScoreTeamT { margin-right: 8px; color: #eabe54; }
+Label.MaScoreTeamCt { margin-left: 8px; color: #96c8fa; }
+
+Label.MaScoreT,
+Label.MaScoreCt
+{
+	vertical-align: middle;
+	font-size: 18;
+	color: #f5f7fa;
+}
+
+Label.MaScoreSep
+{
+	vertical-align: middle;
+	margin-left: 6px;
+	margin-right: 6px;
+	font-size: 18;
+	color: #a3acb6;
+}
+
+.MaPhase
+{
+	width: fit-children;
+	height: fit-children;
+	flow-children: right;
+}
+
+.MaPhaseDot
+{
+	width: 8px;
+	height: 8px;
+	vertical-align: middle;
+	margin-right: 8px;
+	background-color: #9ccf4f;
+}
+
+.MaPhase Label.MaStatV
+{
+	vertical-align: middle;
+}
+
+Label.MaStatTime
+{
+	vertical-align: middle;
+	margin-left: 10px;
+	font-size: 18;
+	letter-spacing: 1px;
+	color: #a3acb6;
+}
+
+.MaStatPhase.phase-live Label.MaStatV { color: #9ccf4f; }
+.MaStatPhase.phase-warmup .MaPhaseDot { background-color: #5aa9e6; }
+.MaStatPhase.phase-warmup Label.MaStatV { color: #5aa9e6; }
+.MaStatPhase.phase-pause .MaPhaseDot { background-color: #ff8a3d; }
+.MaStatPhase.phase-pause Label.MaStatV { color: #ff8a3d; }
+.MaStatPhase.phase-freeze .MaPhaseDot { background-color: #a3acb6; }
+.MaStatPhase.phase-freeze Label.MaStatV { color: #e8eef4; }
+.MaStatPhase.phase-end .MaPhaseDot { background-color: #e05a5a; }
+.MaStatPhase.phase-end Label.MaStatV { color: #e05a5a; }
+
+/* Body: nav rail + main --------------------------------------------------------- */
+
+.MaBody
+{
+	width: 100%;
+	height: fill-parent-flow( 1.0 );
+	flow-children: right;
+}
+
+.MaRail
+{
+	width: 200px;
+	height: 100%;
+	flow-children: down;
+	padding-top: 16px;
+}
+
+Label.MaRailHead
+{
+	margin-left: 16px;
+	margin-bottom: 8px;
+	font-size: 14;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	color: #a3acb6;
+}
+
+.MaNav
+{
+	width: 100%;
+	height: 44px;
+	flow-children: right;
+	padding-left: 13px;
+	padding-right: 16px;
+	margin-bottom: 2px;
+	background-color: #00000000;
+	border-left: 3px solid #00000000;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaNav:hover
+{
+	background-color: #ffffff0d;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaNav:active
+{
+	background-color: #ffffff1a;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaNav.is-active
+{
+	background-color: #f0a5311f;
+	border-left: 3px solid #f0a531;
+}
+
+Label.MaNavLabel
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	font-size: 17;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #e8eef4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaNavCount
+{
+	vertical-align: middle;
+	margin-left: 8px;
+	font-size: 17;
+	color: #a3acb6;
+}
+
+.MaNav.is-active Label.MaNavLabel { color: #f5f7fa; }
+.MaNav.is-active Label.MaNavCount { color: #f0a531; }
+
+.MaMain
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: right;
+	border-left: 1px solid #ffffff14;
+}
+
+.MaInner
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: down;
+}
+
+/* Views: one is visible, picked by the root class ------------------------------ */
+
+.MaViews
+{
+	width: 100%;
+	height: fill-parent-flow( 1.0 );
+	flow-children: none;
+}
+
+.MaPlayers,
+.MaServer,
+.MaMaps,
+.MaRecords,
+.MaLogs
+{
+	visibility: collapse;
+}
+
+.MaCard.view-players .MaPlayers { visibility: visible; }
+.MaCard.view-server .MaServer { visibility: visible; }
+.MaCard.view-maps .MaMaps { visibility: visible; }
+.MaCard.view-records .MaRecords { visibility: visible; }
+.MaCard.view-log .MaLogs { visibility: visible; }
+
+/* Shared: section labels, bars, pager ------------------------------------------- */
+
+Label.MaSection
+{
+	width: 100%;
+	margin-top: 12px;
+	margin-bottom: 8px;
+	font-size: 14;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	color: #a3acb6;
+}
+
+Label.MaSection.MaSectionFirst
+{
+	margin-top: 0px;
+}
+
+.MaBar
+{
+	width: 100%;
+	height: 36px;
+	flow-children: right;
+	margin-bottom: 12px;
+}
+
+Label.MaSectionBar
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	font-size: 14;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	color: #a3acb6;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaPager,
+.MaMiniPager
+{
+	width: fit-children;
+	height: 100%;
+	flow-children: right;
+}
+
+.MaMiniPager.is-off
+{
+	visibility: collapse;
+}
+
+Label.MaPage
+{
+	vertical-align: middle;
+	margin-left: 8px;
+	margin-right: 8px;
+	font-size: 14;
+	letter-spacing: 2px;
+	color: #a3acb6;
+}
+
+.MaPgBtn
+{
+	width: 40px;
+	height: 32px;
+	flow-children: none;
+	vertical-align: middle;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff1f;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaMiniPager .MaPgBtn
+{
+	width: 28px;
+	height: 28px;
+}
+
+.MaPgBtn:hover
+{
+	background-color: #ffffff14;
+	border: 1px solid #f0a53166;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaPgBtn:active
+{
+	background-color: #ffffff24;
+	sound: "UIPanorama.generic_button_press";
+}
+
+/* extra ancestor: outranks the hover rule above */
+.MaCard .MaPgBtn.is-disabled,
+.MaCard .MaPgBtn.is-disabled:hover
+{
+	opacity: 0.35;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff1f;
+	cursor: default;
+	sound: "";
+}
+
+Label.MaPgLabel
+{
+	width: 100%;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-size: 20;
+	color: #e8eef4;
+}
+
+Label.MaEmpty
+{
+	width: 100%;
+	height: 60px;
+	font-size: 16;
+	text-align: center;
+	color: #a3acb6;
+}
+
+Label.MaEmpty.is-off
+{
+	visibility: collapse;
+}
+
+/* Action buttons: rest / hover / press / disabled / confirm --------------------- */
+
+.MaBtnRow
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: right;
+	margin-bottom: 6px;
+}
+
+.MaBtn
+{
+	width: 116px;
+	height: 36px;
+	flow-children: none;
+	margin-right: 8px;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaBtn:last-child
+{
+	margin-right: 0px;
+}
+
+.MaBtn:hover
+{
+	background-color: #ffffff1c;
+	border: 1px solid #f0a53166;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaBtn:active
+{
+	background-color: #ffffff2e;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaBtn.MaBtnDanger
+{
+	border: 1px solid #e05a5a66;
+}
+
+.MaBtn.MaBtnDanger:hover
+{
+	background-color: #e05a5a33;
+	border: 1px solid #e05a5a;
+}
+
+.MaBtn.MaBtnDanger:active
+{
+	background-color: #e05a5a55;
+}
+
+.MaBtn.is-confirm,
+.MaBtn.is-confirm:hover
+{
+	background-color: #e05a5a66;
+	border: 1px solid #e05a5a;
+}
+
+/* extra ancestor: outranks hover, danger and confirm */
+.MaCard .MaBtn.is-disabled,
+.MaCard .MaBtn.is-disabled:hover
+{
+	opacity: 0.35;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	cursor: default;
+	sound: "";
+}
+
+.MaBtn.MaBtnWide { width: 180px; }
+.MaBtn.MaBtnFull { width: 368px; }
+
+Label.MaBtnLabel,
+Label.MaBtnSure
+{
+	width: 100%;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-size: 15;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #e8eef4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaBtnSure
+{
+	visibility: collapse;
+	color: #f5f7fa;
+}
+
+.MaBtn.is-confirm Label.MaBtnLabel { visibility: collapse; }
+.MaBtn.is-confirm Label.MaBtnSure { visibility: visible; }
+
+/* Players view: two team columns + spectators, detail card on the right -------- */
+
+.MaPlayers
+{
+	width: 100%;
+	height: 100%;
+	flow-children: right;
+}
+
+.MaTeams
+{
+	width: 640px;
+	height: 100%;
+	flow-children: down;
+}
+
+.MaCols
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: right;
+}
+
+.MaColGap
+{
+	width: 16px;
+	height: 16px;
+}
+
+.MaCol
+{
+	width: 312px;
+	height: fit-children;
+	flow-children: down;
+}
+
+.MaColHead
+{
+	width: 100%;
+	height: 36px;
+	flow-children: right;
+	margin-bottom: 6px;
+	border-bottom: 1px solid #ffffff14;
+}
+
+.MaColMark
+{
+	width: 4px;
+	height: 18px;
+	vertical-align: middle;
+	margin-right: 10px;
+	background-color: #a3acb6;
+}
+
+.MaColT .MaColMark { background-color: #eabe54; }
+.MaColCt .MaColMark { background-color: #96c8fa; }
+
+Label.MaColTitle
+{
+	vertical-align: middle;
+	font-size: 16;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	color: #f5f7fa;
+}
+
+Label.MaColCount
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	margin-left: 8px;
+	font-size: 16;
+	color: #a3acb6;
+}
+
+.MaMiniPager Label.MaPage
+{
+	margin-left: 4px;
+	margin-right: 4px;
+}
+
+.MaPRow
+{
+	width: 100%;
+	height: 38px;
+	flow-children: right;
+	margin-bottom: 4px;
+	padding-right: 10px;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff14;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaPRow:hover
+{
+	background-color: #ffffff17;
+	border: 1px solid #f0a53166;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaPRow:active
+{
+	background-color: #ffffff24;
+	sound: "UIPanorama.generic_button_press";
+}
+
+/* dead: red frame and greyed text, no label */
+.MaPRow.is-dead,
+.MaPRow.is-dead:hover
+{
+	border: 1px solid #e05a5a99;
+}
+
+/* selected wins over dead: the grey text still tells the state */
+.MaPRow.is-active,
+.MaPRow.is-active:hover,
+.MaPRow.is-active.is-dead,
+.MaPRow.is-active.is-dead:hover
+{
+	background-color: #f0a53122;
+	border: 1px solid #f0a531;
+}
+
+.MaPRow.is-off
+{
+	visibility: collapse;
+}
+
+.MaPMark
+{
+	width: 3px;
+	height: 100%;
+	margin-right: 10px;
+	background-color: #a3acb6;
+}
+
+.MaColT .MaPMark { background-color: #eabe54; }
+.MaColCt .MaPMark { background-color: #96c8fa; }
+.MaPRow.is-dead .MaPMark { background-color: #ffffff1f; }
+
+Label.MaPName
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	font-size: 16;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaPRow.is-dead Label.MaPName,
+.MaPRow.is-dead Label.MaPStats,
+.MaPRow.is-dead Label.MaPMeta
+{
+	color: #8a929b;
+}
+
+Label.MaPTag
+{
+	visibility: collapse;
+	vertical-align: middle;
+	margin-left: 6px;
+	padding-left: 4px;
+	padding-right: 4px;
+	font-size: 14;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	border: 1px solid #ffffff33;
+	color: #a3acb6;
+}
+
+.MaPRow.is-muted Label.MaPTagMute,
+.MaPRow.is-gagged Label.MaPTagGag
+{
+	visibility: visible;
+	border: 1px solid #ff8a3d88;
+	color: #ff8a3d;
+}
+
+Label.MaPStats
+{
+	width: 64px;
+	vertical-align: middle;
+	margin-left: 8px;
+	font-size: 15;
+	text-align: right;
+	color: #e8eef4;
+}
+
+Label.MaPMeta
+{
+	width: 56px;
+	vertical-align: middle;
+	margin-left: 8px;
+	font-size: 14;
+	text-align: right;
+	color: #a3acb6;
+}
+
+Label.MaColEmpty
+{
+	width: 100%;
+	height: 38px;
+	font-size: 15;
+	text-align: center;
+	color: #a3acb6;
+}
+
+Label.MaColEmpty.is-off
+{
+	visibility: collapse;
+}
+
+/* Spectators: one row of chips -------------------------------------------------- */
+
+.MaSpec
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: down;
+	margin-top: 12px;
+}
+
+.MaSpecHead
+{
+	width: 100%;
+	height: 30px;
+	flow-children: right;
+	margin-bottom: 6px;
+	border-bottom: 1px solid #ffffff14;
+}
+
+Label.MaSpecTitle
+{
+	vertical-align: middle;
+	font-size: 15;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	color: #e8eef4;
+}
+
+Label.MaSpecCount
+{
+	vertical-align: middle;
+	margin-left: 8px;
+	font-size: 15;
+	color: #a3acb6;
+}
+
+.MaSpecChips
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: right;
+}
+
+.MaSChip
+{
+	width: 94px;
+	height: 32px;
+	flow-children: none;
+	margin-right: 6px;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff1f;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaSChip:hover
+{
+	background-color: #ffffff17;
+	border: 1px solid #f0a53166;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaSChip:active
+{
+	background-color: #ffffff24;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaSChip.is-active,
+.MaSChip.is-active:hover
+{
+	background-color: #f0a53122;
+	border: 1px solid #f0a531;
+}
+
+.MaSChip.is-off
+{
+	visibility: collapse;
+}
+
+Label.MaSChipLabel
+{
+	width: 86px;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-size: 14;
+	color: #e8eef4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaSpecMore
+{
+	vertical-align: middle;
+	margin-left: 2px;
+	font-size: 14;
+	color: #a3acb6;
+}
+
+Label.MaSpecMore.is-off
+{
+	visibility: collapse;
+}
+
+/* Detail card ------------------------------------------------------------------- */
+
+.MaDetail
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: none;
+	background-color: #ffffff06;
+	border: 1px solid #ffffff14;
+}
+
+Label.MaDetailEmpty
+{
+	visibility: collapse;
+	width: 100%;
+	vertical-align: middle;
+	font-size: 16;
+	text-align: center;
+	color: #a3acb6;
+}
+
+.MaDetail.is-empty Label.MaDetailEmpty { visibility: visible; }
+
+.MaDBody
+{
+	width: 368px;
+	height: 100%;
+	horizontal-align: center;
+	flow-children: down;
+	padding-top: 8px;
+}
+
+.MaDetail.is-empty .MaDBody { visibility: collapse; }
+
+.MaDHead
+{
+	width: 100%;
+	height: 56px;
+	flow-children: right;
+	margin-bottom: 8px;
+	border-bottom: 1px solid #ffffff14;
+}
+
+.MaDMark
+{
+	width: 4px;
+	height: 36px;
+	vertical-align: middle;
+	margin-right: 12px;
+	background-color: #a3acb6;
+}
+
+.MaDetail.team-t .MaDMark { background-color: #eabe54; }
+.MaDetail.team-ct .MaDMark { background-color: #96c8fa; }
+.MaDetail.team-spec .MaDMark { background-color: #a3acb6; }
+
+.MaDHeadText
+{
+	width: fill-parent-flow( 1.0 );
+	height: fit-children;
+	vertical-align: middle;
+	flow-children: down;
+}
+
+Label.MaDName
+{
+	width: 100%;
+	font-size: 22;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaDSub
+{
+	width: 100%;
+	margin-top: 2px;
+	font-size: 14;
+	color: #a3acb6;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaDStats
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: down;
+}
+
+.MaDStatRow
+{
+	width: 100%;
+	height: 28px;
+	flow-children: right;
+}
+
+.MaDStat
+{
+	width: 184px;
+	height: 100%;
+	flow-children: right;
+}
+
+Label.MaDStatL
+{
+	width: 76px;
+	vertical-align: middle;
+	font-size: 14;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #a3acb6;
+}
+
+Label.MaDStatV
+{
+	width: 96px;
+	vertical-align: middle;
+	font-size: 15;
+	text-align: right;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaBanPick
+{
+	visibility: collapse;
+	width: 100%;
+	height: fit-children;
+	flow-children: down;
+}
+
+/* sub pages of the card: tabs pick one, the ban picker replaces tabs and pages */
+.MaDTabs
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: right;
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.MaChip.MaDTab
+{
+	height: 30px;
+}
+
+.MaDPages
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: none;
+}
+
+.MaDPage
+{
+	visibility: collapse;
+	width: 100%;
+	height: fit-children;
+	flow-children: down;
+}
+
+.MaDetail.dpage-mod .MaDPageMod { visibility: visible; }
+.MaDetail.dpage-team .MaDPageTeam { visibility: visible; }
+.MaDetail.dpage-player .MaDPagePlayer { visibility: visible; }
+.MaDetail.dpage-items .MaDPageItems { visibility: visible; }
+
+.MaDetail.is-ban .MaDTabs,
+.MaDetail.is-ban .MaDPages
+{
+	visibility: collapse;
+}
+
+.MaDetail.is-ban .MaBanPick { visibility: visible; }
+
+/* stepper: name, ‹ value ›; every click applies at once */
+.MaStepper
+{
+	width: 100%;
+	height: 36px;
+	flow-children: right;
+	margin-bottom: 6px;
+	padding-left: 12px;
+	padding-right: 4px;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff1f;
+}
+
+Label.MaStepLabel
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	font-size: 15;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #e8eef4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaPgBtn.MaStepBtn
+{
+	width: 32px;
+	height: 28px;
+}
+
+Label.MaStepValue
+{
+	width: 76px;
+	vertical-align: middle;
+	font-size: 15;
+	text-align: center;
+	color: #f5f7fa;
+}
+
+Label.MaBanHint
+{
+	width: 100%;
+	margin-bottom: 8px;
+	font-size: 14;
+	color: #ff8a3d;
+}
+
+.MaGive
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: down;
+}
+
+.MaChipRow
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: right;
+	margin-bottom: 6px;
+}
+
+.MaChip
+{
+	width: 86px;
+	height: 32px;
+	flow-children: none;
+	margin-right: 8px;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaChip:last-child
+{
+	margin-right: 0px;
+}
+
+.MaChip:hover
+{
+	background-color: #ffffff1c;
+	border: 1px solid #f0a53166;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaChip:active
+{
+	background-color: #ffffff2e;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaChip.is-off
+{
+	visibility: collapse;
+}
+
+.MaChip.is-active,
+.MaChip.is-active:hover
+{
+	background-color: #f0a53122;
+	border: 1px solid #f0a531;
+}
+
+.MaChip.is-active Label.MaChipLabel { color: #f5f7fa; }
+
+.MaCard .MaChip.is-disabled,
+.MaCard .MaChip.is-disabled:hover
+{
+	opacity: 0.35;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	cursor: default;
+	sound: "";
+}
+
+Label.MaChipLabel
+{
+	width: 80px;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-size: 14;
+	text-transform: uppercase;
+	color: #e8eef4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Server view: two columns of cards --------------------------------------------- */
+
+.MaServer
+{
+	width: 100%;
+	height: 100%;
+	flow-children: right;
+}
+
+.MaSvCol
+{
+	width: 514px;
+	height: 100%;
+	flow-children: down;
+}
+
+.MaSvGap
+{
+	width: 100%;
+	height: 16px;
+}
+
+.MaSvCard
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: none;
+	background-color: #ffffff06;
+	border: 1px solid #ffffff14;
+}
+
+.MaSvInner
+{
+	width: 482px;
+	height: fit-children;
+	horizontal-align: center;
+	flow-children: down;
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+.MaSvCard .MaBtn
+{
+	width: 154px;
+}
+
+Label.MaSvHint
+{
+	width: 100%;
+	margin-top: 4px;
+	font-size: 14;
+	color: #a3acb6;
+}
+
+.MaSwitch
+{
+	width: 100%;
+	height: 40px;
+	flow-children: right;
+	margin-bottom: 4px;
+	padding-left: 12px;
+	padding-right: 12px;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaSwitch:hover
+{
+	background-color: #ffffff1c;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaSwitch:active
+{
+	background-color: #ffffff2e;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaCard .MaSwitch.is-disabled,
+.MaCard .MaSwitch.is-disabled:hover
+{
+	opacity: 0.35;
+	background-color: #ffffff0d;
+	cursor: default;
+	sound: "";
+}
+
+Label.MaSwitchLabel
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	font-size: 16;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaSwitchState
+{
+	vertical-align: middle;
+	margin-right: 12px;
+	font-size: 15;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	color: #a3acb6;
+}
+
+.MaSwitch.is-on Label.MaSwitchState { color: #f0a531; }
+
+.MaSwitchTrack
+{
+	width: 48px;
+	height: 24px;
+	flow-children: none;
+	vertical-align: middle;
+	background-color: #ffffff14;
+	border: 1px solid #ffffff33;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaSwitch.is-on .MaSwitchTrack
+{
+	background-color: #f0a53133;
+	border: 1px solid #f0a531;
+}
+
+.MaSwitchKnob
+{
+	width: 16px;
+	height: 16px;
+	margin-left: 3px;
+	vertical-align: middle;
+	background-color: #a3acb6;
+	transform: translateX( 0px );
+	transition-property: transform, background-color;
+	transition-duration: 0.15s;
+	transition-timing-function: ease-out;
+}
+
+.MaSwitch.is-on .MaSwitchKnob
+{
+	background-color: #f0a531;
+	transform: translateX( 24px );
+}
+
+/* Maps view: 4x3 grid ------------------------------------------------------------ */
+
+.MaMaps
+{
+	width: 100%;
+	height: 100%;
+	flow-children: down;
+}
+
+.MaMapRow
+{
+	width: 100%;
+	height: fit-children;
+	flow-children: right;
+	margin-bottom: 12px;
+}
+
+.MaMap
+{
+	width: 252px;
+	height: 64px;
+	flow-children: none;
+	margin-right: 12px;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.15s;
+}
+
+.MaMap:last-child
+{
+	margin-right: 0px;
+}
+
+.MaMap:hover
+{
+	background-color: #ffffff1c;
+	border: 1px solid #f0a53166;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.MaMap:active
+{
+	background-color: #ffffff2e;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.MaMap.is-active,
+.MaMap.is-active:hover
+{
+	background-color: #f0a53122;
+	border: 1px solid #f0a531;
+	cursor: default;
+}
+
+.MaMap.is-confirm,
+.MaMap.is-confirm:hover
+{
+	background-color: #e05a5a66;
+	border: 1px solid #e05a5a;
+}
+
+.MaMap.is-off
+{
+	visibility: collapse;
+}
+
+.MaCard .MaMap.is-disabled,
+.MaCard .MaMap.is-disabled:hover
+{
+	opacity: 0.35;
+	background-color: #ffffff0d;
+	border: 1px solid #ffffff1f;
+	cursor: default;
+	sound: "";
+}
+
+Label.MaMapName
+{
+	width: 225px;
+	vertical-align: top;
+	margin-top: 10px;
+	margin-left: 14px;
+	font-size: 18;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaMapSub
+{
+	width: 225px;
+	vertical-align: bottom;
+	margin-bottom: 10px;
+	margin-left: 14px;
+	font-size: 14;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #a3acb6;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaMap.is-active Label.MaMapSub { color: #f0a531; }
+
+.MaMap Label.MaBtnSure
+{
+	font-size: 18;
+}
+
+.MaMap.is-confirm Label.MaMapName,
+.MaMap.is-confirm Label.MaMapSub
+{
+	visibility: collapse;
+}
+
+.MaMap.is-confirm Label.MaBtnSure { visibility: visible; }
+
+Label.MaHintLine
+{
+	width: 100%;
+	margin-top: 4px;
+	font-size: 14;
+	color: #a3acb6;
+}
+
+/* Records view (bans / mutes): fixed pool of rows ------------------------------- */
+
+.MaRecords
+{
+	width: 100%;
+	height: 100%;
+	flow-children: down;
+}
+
+.MaRec
+{
+	width: 100%;
+	height: 58px;
+	flow-children: right;
+	margin-bottom: 8px;
+	padding-left: 12px;
+	padding-right: 12px;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff1f;
+}
+
+.MaRec.is-off
+{
+	visibility: collapse;
+}
+
+.MaIdx
+{
+	width: 40px;
+	height: 30px;
+	flow-children: none;
+	vertical-align: middle;
+	margin-right: 12px;
+	border: 1px solid #f0a531;
+}
+
+Label.MaIdxLabel
+{
+	width: 100%;
+	horizontal-align: center;
+	vertical-align: middle;
+	text-align: center;
+	font-size: 14;
+	letter-spacing: 1px;
+	color: #f0a531;
+}
+
+.MaRecBody
+{
+	width: fill-parent-flow( 1.0 );
+	height: fit-children;
+	vertical-align: middle;
+	flow-children: down;
+}
+
+Label.MaRecName
+{
+	width: 100%;
+	font-size: 16;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+Label.MaRecMeta
+{
+	width: 100%;
+	margin-top: 2px;
+	font-size: 14;
+	color: #a3acb6;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.MaBtn.MaRecBtn
+{
+	width: 150px;
+	vertical-align: middle;
+	margin-left: 12px;
+	margin-right: 0px;
+}
+
+/* bans / mutes / gags filter in the bar */
+.MaKinds
+{
+	width: fill-parent-flow( 1.0 );
+	height: 100%;
+	flow-children: right;
+}
+
+.MaChip.MaKind
+{
+	width: 132px;
+	vertical-align: middle;
+}
+
+Label.MaChipLabel.MaKindLabel
+{
+	width: 124px;
+}
+
+/* Log view: fixed pool of rows ------------------------------------------------- */
+
+.MaLogs
+{
+	width: 100%;
+	height: 100%;
+	flow-children: down;
+}
+
+.MaLog
+{
+	width: 100%;
+	height: 40px;
+	flow-children: right;
+	margin-bottom: 6px;
+	padding-left: 12px;
+	padding-right: 12px;
+	background-color: #ffffff08;
+	border: 1px solid #ffffff1f;
+}
+
+.MaLog.is-off
+{
+	visibility: collapse;
+}
+
+.MaLog.is-danger
+{
+	border: 1px solid #e05a5a66;
+}
+
+Label.MaLogTime
+{
+	width: 150px;
+	vertical-align: middle;
+	font-size: 14;
+	color: #a3acb6;
+}
+
+Label.MaLogText
+{
+	width: fill-parent-flow( 1.0 );
+	vertical-align: middle;
+	font-size: 15;
+	color: #f5f7fa;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Foot -------------------------------------------------------------------------- */
+
+.MaFoot
+{
+	width: 100%;
+	height: 40px;
+	flow-children: none;
+	padding-left: 20px;
+	padding-right: 20px;
+	border-top: 1px solid #ffffff14;
+}
+
+Label.MaFootHint
+{
+	horizontal-align: left;
+	vertical-align: middle;
+	font-size: 14;
+	letter-spacing: 1px;
+	color: #e8eef4;
+}
+
+Label.MaCredit
+{
+	horizontal-align: right;
+	vertical-align: middle;
+	font-size: 14;
+	letter-spacing: 1px;
+	color: #a3acb6;
+}

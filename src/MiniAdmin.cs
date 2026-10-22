@@ -19,6 +19,25 @@ namespace MiniAdmin
             RegisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             RegisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
             RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
+            LoadActionLog();
+            LoadChat();
+            LoadAdminMenu(hotReload);
+            if (hotReload)
+            {
+                // players connected before the reload never fired EventPlayerConnectFull for this instance
+                foreach (CCSPlayerController player in Utilities.GetPlayers())
+                {
+                    if (player is { IsValid: true, IsBot: false, IsHLTV: false } && !_connectedPlayers.ContainsKey(player))
+                    {
+                        _connectedPlayers.Add(player, new Dictionary<string, string>
+                        {
+                            { "name", player.PlayerName },
+                            { "steam_id", player.SteamID.ToString() },
+                            { "timestamp", Server.CurrentTime.ToString() }
+                        });
+                    }
+                }
+            }
         }
 
         public override void Unload(bool hotReload)
@@ -27,6 +46,8 @@ namespace MiniAdmin
             DeregisterEventHandler<EventPlayerDisconnect>(OnPlayerDisconnect);
             DeregisterEventHandler<EventPlayerChangename>(OnPlayerChangeName);
             RemoveListener<Listeners.OnMapEnd>(OnMapEnd);
+            UnloadChat();
+            UnloadAdminMenu();
         }
 
         private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
@@ -49,7 +70,7 @@ namespace MiniAdmin
             _connectedPlayers[player]["steam_id"] = player.SteamID.ToString();
             _connectedPlayers[player]["timestamp"] = Server.CurrentTime.ToString();
             // kick player
-            if (Config.BannedPlayers.ContainsKey(player.SteamID))
+            if (IsBanActive(player.SteamID))
             {
                 player.Disconnect(0);
                 Server.PrintToChatAll(Localizer["command.banned"].Value

@@ -7,13 +7,14 @@ namespace MiniAdmin
 {
     public partial class MiniAdmin
     {
-        private bool KickPlayer(CCSPlayerController player)
+        private bool KickPlayer(CCSPlayerController player, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid)
             {
                 return false;
             }
+            LogAction(admin, "kick", player);
             // kick player
             player.Disconnect(0);
             // announce to all
@@ -21,34 +22,33 @@ namespace MiniAdmin
                 .Replace("{player}", player.PlayerName));
             return true;
         }
-        private bool BanPlayer(CCSPlayerController player, string reason = "Unknown")
+        /// <param name="minutes">ban duration, 0 = permanent</param>
+        private bool BanPlayer(CCSPlayerController player, string reason = "Unknown", CCSPlayerController? admin = null, int minutes = 0)
         {
             if (player == null
                 || !player.IsValid)
             {
                 return false;
             }
-            // kick player
-            player.Disconnect(0);
             // add to ban list if not already added
             if (!Config.BannedPlayers.ContainsKey(player.SteamID))
             {
-                Config.BannedPlayers.Add(player.SteamID, new Dictionary<string, string>
-                {
-                    { "name", player.PlayerName },
-                    { "reason", reason}
-                });
+                Config.BannedPlayers.Add(player.SteamID, NewBanEntry(player.PlayerName, reason, admin, minutes));
                 // write to config
                 Config.Update();
+                LogAction(admin, "ban", player, reason + ", " + DurationText(minutes));
             }
+            // kick player
+            player.Disconnect(0);
             // announce to all
-            Server.PrintToChatAll(Localizer["command.ban"].Value
+            Server.PrintToChatAll((minutes > 0 ? Localizer["command.tempban"].Value : Localizer["command.ban"].Value)
                 .Replace("{player}", player.PlayerName)
-                .Replace("{reason}", reason));
+                .Replace("{reason}", reason)
+                .Replace("{duration}", DurationText(minutes)));
             return true;
         }
 
-        private bool UnbanPlayer(ulong SteamID)
+        private bool UnbanPlayer(ulong SteamID, CCSPlayerController? admin = null)
         {
             if (!Config.BannedPlayers.ContainsKey(SteamID))
             {
@@ -60,13 +60,14 @@ namespace MiniAdmin
             _ = Config.BannedPlayers.Remove(SteamID);
             // write to config
             Config.Update();
+            LogAction(admin, "unban", playerName, SteamID.ToString());
             // announce to all
             Server.PrintToChatAll(Localizer["command.unban"].Value
             .Replace("{player}", playerName));
             return true;
         }
 
-        private bool MutePlayer(CCSPlayerController player)
+        private bool MutePlayer(CCSPlayerController player, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid)
@@ -80,10 +81,13 @@ namespace MiniAdmin
             {
                 Config.MutedPlayers.Add(player.SteamID, new Dictionary<string, string>
                 {
-                    { "name", player.PlayerName }
+                    { "name", player.PlayerName },
+                    { "date", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm") },
+                    { "admin", admin?.PlayerName ?? "Console" }
                 });
                 // write to config
                 Config.Update();
+                LogAction(admin, "mute", player);
             }
             // announce to all
             Server.PrintToChatAll(Localizer["command.mute"].Value
@@ -91,7 +95,7 @@ namespace MiniAdmin
             return true;
         }
 
-        private bool UnmutePlayer(ulong SteamID)
+        private bool UnmutePlayer(ulong SteamID, CCSPlayerController? admin = null)
         {
             if (!Config.MutedPlayers.ContainsKey(SteamID))
             {
@@ -103,6 +107,7 @@ namespace MiniAdmin
             _ = Config.MutedPlayers.Remove(SteamID);
             // write to config
             Config.Update();
+            LogAction(admin, "unmute", playerName, SteamID.ToString());
             // check if player is online
             IEnumerable<CCSPlayerController> players = Utilities.GetPlayers().Where(p => p.IsValid && p.SteamID == SteamID);
             if (players.Count() == 1)
@@ -117,7 +122,7 @@ namespace MiniAdmin
             return true;
         }
 
-        private bool ForceSwitchPlayer(CCSPlayerController player)
+        private bool ForceSwitchPlayer(CCSPlayerController player, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid)
@@ -126,13 +131,14 @@ namespace MiniAdmin
             }
             CsTeam newTeam = player.Team == CsTeam.Terrorist ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
             player.SwitchTeam(newTeam);
+            LogAction(admin, "fswitch", player, newTeam.ToString());
             // announce to all
             Server.PrintToChatAll(Localizer["command.fswitch"].Value
                 .Replace("{player}", player.PlayerName));
             return true;
         }
 
-        private bool SwitchPlayer(CCSPlayerController player, CsTeam team = CsTeam.None)
+        private bool SwitchPlayer(CCSPlayerController player, CsTeam team = CsTeam.None, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid)
@@ -145,6 +151,7 @@ namespace MiniAdmin
             }
 
             player.ChangeTeam(team);
+            LogAction(admin, "switch", player, team.ToString());
             // announce to all
             Server.PrintToChatAll(Localizer["command.switch"].Value
                 .Replace("{player}", player.PlayerName)
@@ -152,7 +159,7 @@ namespace MiniAdmin
             return true;
         }
 
-        private bool RespawnPlayer(CCSPlayerController player)
+        private bool RespawnPlayer(CCSPlayerController player, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid)
@@ -160,13 +167,14 @@ namespace MiniAdmin
                 return false;
             }
             player.Respawn();
+            LogAction(admin, "respawn", player);
             // announce to all
             Server.PrintToChatAll(Localizer["command.respawn"].Value
                 .Replace("{player}", player.PlayerName));
             return true;
         }
 
-        private bool KillPlayer(CCSPlayerController player)
+        private bool KillPlayer(CCSPlayerController player, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid)
@@ -174,13 +182,14 @@ namespace MiniAdmin
                 return false;
             }
             player.CommitSuicide(false, true);
+            LogAction(admin, "kill", player);
             // announce to all
             Server.PrintToChatAll(Localizer["command.kill"].Value
                 .Replace("{player}", player.PlayerName));
             return true;
         }
 
-        private bool GivePlayer(CCSPlayerController player, string? item)
+        private bool GivePlayer(CCSPlayerController player, string? item, CCSPlayerController? admin = null)
         {
             if (player == null
                 || !player.IsValid
@@ -190,6 +199,7 @@ namespace MiniAdmin
                 return false;
             }
             player.GiveNamedItem(item.ToLower());
+            LogAction(admin, "give", player, item.ToLower());
             // announce to all
             Server.PrintToChatAll(Localizer["command.give"].Value
                 .Replace("{player}", player.PlayerName)
@@ -197,10 +207,11 @@ namespace MiniAdmin
             return true;
         }
 
-        private bool RestartMatch(int delay = 3)
+        private bool RestartMatch(int delay = 3, CCSPlayerController? admin = null)
         {
             // restart match
             Server.ExecuteCommand($"mp_restartgame {delay}");
+            LogAction(admin, "restart", string.Empty, string.Empty, delay + " s");
             // announce to all
             Server.PrintToChatAll(Localizer["command.restart"]);
             return true;
